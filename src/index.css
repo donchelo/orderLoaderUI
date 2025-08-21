@@ -208,7 +208,7 @@ body {
 
 .add-line-row {
   display: grid;
-  grid-template-columns: 2fr 1fr 120px 100px;
+  grid-template-columns: 1fr 1fr 100px 120px 100px;
   gap: 15px;
   align-items: end;
 }

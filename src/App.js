@@ -14,7 +14,8 @@ function App() {
   
   const [lineItems, setLineItems] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchByCode, setSearchByCode] = useState('');
+  const [searchByName, setSearchByName] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [lineQuantity, setLineQuantity] = useState(1);
@@ -147,21 +148,39 @@ function App() {
       return;
     }
 
-    if (searchQuery.length < 2) {
+    // Solo buscar si hay al menos 2 caracteres en alguno de los campos
+    if (searchByCode.length < 2 && searchByName.length < 2) {
       setSearchResults([]);
       setShowSearchResults(false);
       return;
     }
 
-    const filtered = filteredProducts.filter(p => 
-      p.ref.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (p.categoria && p.categoria.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
+    const filtered = filteredProducts.filter(p => {
+      const matchesCode = searchByCode.length >= 2 && 
+        p.ref.toLowerCase().includes(searchByCode.toLowerCase());
+      
+      const matchesName = searchByName.length >= 2 && 
+        p.name.toLowerCase().includes(searchByName.toLowerCase());
+      
+      const matchesCategory = searchByName.length >= 2 && 
+        p.categoria && p.categoria.toLowerCase().includes(searchByName.toLowerCase());
+      
+      // Si hay búsqueda por código, priorizar esa
+      if (searchByCode.length >= 2) {
+        return matchesCode;
+      }
+      
+      // Si solo hay búsqueda por nombre, buscar en nombre y categoría
+      if (searchByName.length >= 2) {
+        return matchesName || matchesCategory;
+      }
+      
+      return false;
+    });
 
     setSearchResults(filtered);
     setShowSearchResults(filtered.length > 0);
-  }, [searchQuery, selectedClient, filteredProducts]);
+  }, [searchByCode, searchByName, selectedClient, filteredProducts]);
 
   // Ocultar resultados al hacer clic fuera
   useEffect(() => {
@@ -177,7 +196,8 @@ function App() {
 
   const selectProduct = (product) => {
     setSelectedProduct(product);
-    setSearchQuery(`${product.ref} - ${product.name}`);
+    setSearchByCode(product.ref);
+    setSearchByName(product.name);
     setLinePrice(`$${product.price.toLocaleString('es-CO')}`);
     setShowSearchResults(false);
   };
@@ -252,7 +272,8 @@ function App() {
   };
 
   const clearAddLineForm = () => {
-    setSearchQuery('');
+    setSearchByCode('');
+    setSearchByName('');
     setLineQuantity(1);
     setLinePrice('');
     setSelectedProduct(null);
@@ -260,7 +281,8 @@ function App() {
 
   const handleClientChange = (client) => {
     setSelectedClient(client);
-    setSearchQuery('');
+    setSearchByCode('');
+    setSearchByName('');
     setSelectedProduct(null);
     setLinePrice('');
     setLineItems([]); // Limpiar productos del pedido al cambiar cliente
@@ -388,37 +410,29 @@ function App() {
             <div className="add-line-section">
               <div className="add-line-row">
                 <div className="form-group">
-                  <label>Buscar Producto</label>
+                  <label>Número de Catálogo</label>
                   <div className="search-container" ref={searchRef}>
                     <input
                       type="text"
                       className="search-input"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder={selectedClient ? "Buscar por referencia, nombre o categoría" : "Primero selecciona un cliente"}
+                      value={searchByCode}
+                      onChange={(e) => setSearchByCode(e.target.value)}
+                      placeholder={selectedClient ? "Buscar por código de producto" : "Primero selecciona un cliente"}
                       disabled={!selectedClient}
                     />
-                    <div className={`search-results ${showSearchResults ? 'show' : ''}`}>
-                      {searchResults.slice(0, 10).map((product) => (
-                        <div
-                          key={product.ref}
-                          className="search-result-item"
-                          onClick={() => selectProduct(product)}
-                        >
-                          <div><strong>{product.ref}</strong> - {product.name}</div>
-                          <div className="product-info">
-                            ${product.price.toLocaleString('es-CO')} 
-                            {product.categoria && ` | ${product.categoria}`}
-                            {product.stock && ` | Stock: ${product.stock}`}
-                          </div>
-                        </div>
-                      ))}
-                      {searchResults.length > 10 && (
-                        <div className="search-result-item" style={{fontStyle: 'italic', color: '#7f8c8d'}}>
-                          ... y {searchResults.length - 10} productos más. Refina tu búsqueda.
-                        </div>
-                      )}
-                    </div>
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Nombre del Producto</label>
+                  <div className="search-container">
+                    <input
+                      type="text"
+                      className="search-input"
+                      value={searchByName}
+                      onChange={(e) => setSearchByName(e.target.value)}
+                      placeholder={selectedClient ? "Buscar por nombre o categoría" : "Primero selecciona un cliente"}
+                      disabled={!selectedClient}
+                    />
                   </div>
                 </div>
                 <div className="form-group">
@@ -452,6 +466,31 @@ function App() {
                   >
                     Agregar
                   </button>
+                </div>
+              </div>
+              
+              {/* Resultados de búsqueda */}
+              <div className="search-container" style={{ marginTop: '10px' }}>
+                <div className={`search-results ${showSearchResults ? 'show' : ''}`}>
+                  {searchResults.slice(0, 10).map((product) => (
+                    <div
+                      key={product.ref}
+                      className="search-result-item"
+                      onClick={() => selectProduct(product)}
+                    >
+                      <div><strong>{product.ref}</strong> - {product.name}</div>
+                      <div className="product-info">
+                        ${product.price.toLocaleString('es-CO')} 
+                        {product.categoria && ` | ${product.categoria}`}
+                        {product.stock && ` | Stock: ${product.stock}`}
+                      </div>
+                    </div>
+                  ))}
+                  {searchResults.length > 10 && (
+                    <div className="search-result-item" style={{fontStyle: 'italic', color: '#7f8c8d'}}>
+                      ... y {searchResults.length - 10} productos más. Refina tu búsqueda.
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
