@@ -666,6 +666,8 @@ function App() {
                   </p>
                 )}
               </div>
+            </div>
+            <div className="form-row">
               <div className="form-group">
                 <label htmlFor="documentDate">Fecha Documento</label>
                 <input
@@ -680,8 +682,6 @@ function App() {
                   }}
                 />
               </div>
-            </div>
-            <div className="form-row">
               <div className="form-group">
                 <label htmlFor="deliveryDate">Fecha de Entrega <span className="required">*</span></label>
                 <input
@@ -692,14 +692,6 @@ function App() {
                   required
                   min={new Date().toISOString().split('T')[0]}
                 />
-              </div>
-              <div className="form-group">
-                <label>&nbsp;</label>
-                <div style={{ height: '44px', display: 'flex', alignItems: 'center' }}>
-                  <span style={{ color: '#6c757d', fontSize: '12px' }}>
-                    📅 Fecha automática del sistema
-                  </span>
-                </div>
               </div>
             </div>
           </div>
@@ -887,12 +879,14 @@ function App() {
 
           {/* Acciones */}
           <div className="form-actions">
-            <button type="button" className="btn btn-secondary" onClick={resetForm}>
-              Limpiar
-            </button>
-            <button type="submit" className="btn btn-success">
-              Generar Orden de Compra
-            </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <button type="button" className="btn btn-secondary" onClick={resetForm}>
+                Limpiar
+              </button>
+              <button type="submit" className="btn btn-success">
+                Generar Orden de Compra
+              </button>
+            </div>
           </div>
 
           <div className={`success-message ${showSuccess ? 'show' : ''}`} id="successMessage">
