@@ -28,18 +28,7 @@ function App() {
   const [selectedClient, setSelectedClient] = useState('');
   const [availableClients, setAvailableClients] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
-  const [showDiagnostics, setShowDiagnostics] = useState(false);
-  const [diagnosticInfo, setDiagnosticInfo] = useState({
-    totalProducts: 0,
-    totalScales: 0,
-    clientsCount: 0,
-    categoriesCount: 0,
-    loadErrors: [],
-    loadWarnings: [],
-    loadTime: 0,
-    fileType: '',
-    fileSize: 0
-  });
+
   
   const searchRef = useRef(null);
 
@@ -95,20 +84,7 @@ function App() {
 
   // Función para cargar productos desde CSV o XLSX
   const loadProductsFromFile = async () => {
-    const startTime = Date.now();
     setLoadingProducts(true);
-    
-    const diagnosticData = {
-      totalProducts: 0,
-      totalScales: 0,
-      clientsCount: 0,
-      categoriesCount: 0,
-      loadErrors: [],
-      loadWarnings: [],
-      loadTime: 0,
-      fileType: '',
-      fileSize: 0
-    };
     
     try {
       // Intentar cargar XLSX primero, luego CSV como respaldo
@@ -124,9 +100,6 @@ function App() {
           const worksheet = workbook.Sheets[sheetName];
           const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
           
-          diagnosticData.fileType = 'XLSX';
-          diagnosticData.fileSize = arrayBuffer.byteLength;
-          
           console.log('📊 Cargando desde archivo XLSX...');
           console.log(`📋 Filas encontradas: ${jsonData.length}`);
           
@@ -137,7 +110,6 @@ function App() {
           // Procesar datos del XLSX (asumiendo la misma estructura que CSV)
           jsonData.slice(1).forEach((row, index) => {
             if (!row || row.length < 11) {
-              diagnosticData.loadWarnings.push(`Fila ${index + 2}: Datos insuficientes`);
               return;
             }
             
@@ -149,12 +121,10 @@ function App() {
             const categoria = row[8]?.toString().trim() || 'General';
             
             if (!ref || !name) {
-              diagnosticData.loadWarnings.push(`Fila ${index + 2}: Nº catálogo SN o nombre vacío`);
               return;
             }
             
             if (precioEspecial === 0) {
-              diagnosticData.loadWarnings.push(`Fila ${index + 2}: Precio especial es 0`);
               return;
             }
             
@@ -187,18 +157,11 @@ function App() {
             priceScales = loadedScales;
             dataLoaded = true;
             
-            diagnosticData.totalProducts = loadedProducts.length;
-            diagnosticData.totalScales = Object.values(loadedScales).reduce((sum, scales) => sum + scales.length, 0);
-            diagnosticData.categoriesCount = categories.size;
-            
             console.log(`✅ Productos cargados desde XLSX: ${loadedProducts.length}`);
-            console.log(`💰 Escalas de precios: ${diagnosticData.totalScales}`);
-            console.log(`📂 Categorías: ${diagnosticData.categoriesCount}`);
           }
         }
       } catch (xlsxError) {
         console.log('⚠️ No se pudo cargar XLSX, intentando CSV...');
-        diagnosticData.loadWarnings.push('No se pudo cargar archivo XLSX');
       }
       
       // Si no se cargó XLSX, intentar CSV
@@ -208,9 +171,6 @@ function App() {
           if (csvResponse.ok) {
             const csvText = await csvResponse.text();
             const lines = csvText.split('\n');
-            
-            diagnosticData.fileType = 'CSV';
-            diagnosticData.fileSize = csvText.length;
             
             console.log('📊 Cargando desde archivo CSV...');
             console.log(`📋 Líneas encontradas: ${lines.length}`);
@@ -225,7 +185,6 @@ function App() {
               const values = line.split(',');
               
               if (values.length < 11) {
-                diagnosticData.loadWarnings.push(`Línea ${index + 2}: Datos insuficientes`);
                 return;
               }
               
@@ -237,12 +196,10 @@ function App() {
               const categoria = values[8]?.trim() || 'General';
               
               if (!ref || !name) {
-                diagnosticData.loadWarnings.push(`Línea ${index + 2}: Nº catálogo SN o nombre vacío`);
                 return;
               }
               
               if (precioEspecial === 0) {
-                diagnosticData.loadWarnings.push(`Línea ${index + 2}: Precio especial es 0`);
                 return;
               }
               
@@ -275,19 +232,11 @@ function App() {
               priceScales = loadedScales;
               dataLoaded = true;
               
-              diagnosticData.totalProducts = loadedProducts.length;
-              diagnosticData.totalScales = Object.values(loadedScales).reduce((sum, scales) => sum + scales.length, 0);
-              diagnosticData.categoriesCount = categories.size;
-              
               console.log(`✅ Productos cargados desde CSV: ${loadedProducts.length}`);
-              console.log(`💰 Escalas de precios: ${diagnosticData.totalScales}`);
-              console.log(`📂 Categorías: ${diagnosticData.categoriesCount}`);
             }
-          } else {
-            diagnosticData.loadErrors.push('No se pudo cargar archivo CSV');
           }
         } catch (csvError) {
-          diagnosticData.loadErrors.push(`Error cargando CSV: ${csvError.message}`);
+          console.log('❌ Error cargando CSV:', csvError);
         }
       }
       
@@ -302,24 +251,17 @@ function App() {
           'REF001': [{ cantidad: 1, precio: 25000 }, { cantidad: 10, precio: 22000 }, { cantidad: 50, precio: 20000 }],
           'REF002': [{ cantidad: 1, precio: 35000 }, { cantidad: 5, precio: 32000 }, { cantidad: 20, precio: 30000 }]
         };
-        
-        diagnosticData.totalProducts = products.length;
-        diagnosticData.totalScales = Object.values(priceScales).reduce((sum, scales) => sum + scales.length, 0);
-        diagnosticData.categoriesCount = 1;
-        diagnosticData.loadWarnings.push('Usando productos por defecto');
       }
       
       // Extraer clientes únicos
       const clients = [...new Set(products.map(p => p.empresa).filter(empresa => empresa))];
       setAvailableClients(clients);
-      diagnosticData.clientsCount = clients.length;
       
       console.log(`🏢 Clientes disponibles: ${clients.length}`);
       console.log('Clientes:', clients);
       
     } catch (error) {
       console.log('❌ Error general cargando productos:', error);
-      diagnosticData.loadErrors.push(`Error general: ${error.message}`);
       
       // Productos por defecto en caso de error
       products = [
@@ -330,15 +272,8 @@ function App() {
         'REF001': [{ cantidad: 1, precio: 25000 }, { cantidad: 10, precio: 22000 }, { cantidad: 50, precio: 20000 }],
         'REF002': [{ cantidad: 1, precio: 35000 }, { cantidad: 5, precio: 32000 }, { cantidad: 20, precio: 30000 }]
       };
-      
-      diagnosticData.totalProducts = products.length;
-      diagnosticData.totalScales = Object.values(priceScales).reduce((sum, scales) => sum + scales.length, 0);
-      diagnosticData.clientsCount = 1;
-      diagnosticData.categoriesCount = 1;
     }
     
-    diagnosticData.loadTime = Date.now() - startTime;
-    setDiagnosticInfo(diagnosticData);
     setProductsLoaded(true);
     setLoadingProducts(false);
   };
@@ -556,7 +491,7 @@ function App() {
 
   const reloadProducts = async () => {
     if (window.confirm('¿Deseas recargar los productos desde el archivo?')) {
-      setShowDiagnostics(false);
+  
       await loadProductsFromFile();
     }
   };
@@ -687,172 +622,13 @@ function App() {
         <p>Generación de órdenes de compra corporativas</p>
         {loadingProducts && <p style={{color: '#3498db', fontSize: '14px'}}>🔄 Cargando productos desde base de datos...</p>}
         {productsLoaded && (
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px'}}>
-            <p style={{color: '#27ae60', fontSize: '14px'}}>
-              ✅ Base de datos cargada: {diagnosticInfo.totalProducts} productos de {diagnosticInfo.clientsCount} clientes
-              {diagnosticInfo.fileType && ` | Archivo: ${diagnosticInfo.fileType}`}
-              {diagnosticInfo.loadTime > 0 && ` | Tiempo: ${diagnosticInfo.loadTime}ms`}
-            </p>
-            <button 
-              onClick={() => setShowDiagnostics(!showDiagnostics)}
-              style={{
-                background: '#3498db',
-                color: 'white',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '12px'
-              }}
-            >
-              {showDiagnostics ? '🔽 Ocultar' : '🔍'} Diagnóstico
-            </button>
-          </div>
+          <p style={{color: '#27ae60', fontSize: '14px', marginTop: '10px'}}>
+            ✅ Base de datos cargada correctamente
+          </p>
         )}
       </div>
 
-      {/* Panel de Diagnóstico */}
-      {showDiagnostics && productsLoaded && (
-        <div style={{
-          background: '#f8f9fa',
-          border: '1px solid #dee2e6',
-          borderRadius: '8px',
-          padding: '20px',
-          marginBottom: '20px',
-          fontSize: '14px'
-        }}>
-          <h3 style={{marginTop: 0, color: '#495057'}}>📊 Diagnóstico de Carga de Productos</h3>
-          
-          <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '20px'}}>
-            <div style={{background: 'white', padding: '15px', borderRadius: '6px', border: '1px solid #e9ecef'}}>
-              <div style={{fontWeight: 'bold', color: '#495057'}}>📦 Productos</div>
-              <div style={{fontSize: '24px', fontWeight: 'bold', color: '#28a745'}}>{diagnosticInfo.totalProducts}</div>
-              <div style={{fontSize: '12px', color: '#6c757d'}}>Productos únicos cargados</div>
-            </div>
-            
-            <div style={{background: 'white', padding: '15px', borderRadius: '6px', border: '1px solid #e9ecef'}}>
-              <div style={{fontWeight: 'bold', color: '#495057'}}>💰 Escalas</div>
-              <div style={{fontSize: '24px', fontWeight: 'bold', color: '#007bff'}}>{diagnosticInfo.totalScales}</div>
-              <div style={{fontSize: '12px', color: '#6c757d'}}>Escalas de precios totales</div>
-            </div>
-            
-            <div style={{background: 'white', padding: '15px', borderRadius: '6px', border: '1px solid #e9ecef'}}>
-              <div style={{fontWeight: 'bold', color: '#495057'}}>🏢 Clientes</div>
-              <div style={{fontSize: '24px', fontWeight: 'bold', color: '#17a2b8'}}>{diagnosticInfo.clientsCount}</div>
-              <div style={{fontSize: '12px', color: '#6c757d'}}>Clientes disponibles</div>
-            </div>
-            
-            <div style={{background: 'white', padding: '15px', borderRadius: '6px', border: '1px solid #e9ecef'}}>
-              <div style={{fontWeight: 'bold', color: '#495057'}}>📂 Categorías</div>
-              <div style={{fontSize: '24px', fontWeight: 'bold', color: '#6f42c1'}}>{diagnosticInfo.categoriesCount}</div>
-              <div style={{fontSize: '12px', color: '#6c757d'}}>Categorías de productos</div>
-            </div>
-          </div>
-          
-          {diagnosticInfo.fileType && (
-            <div style={{background: 'white', padding: '15px', borderRadius: '6px', border: '1px solid #e9ecef', marginBottom: '15px'}}>
-              <div style={{fontWeight: 'bold', color: '#495057', marginBottom: '10px'}}>📁 Información del Archivo</div>
-              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '13px'}}>
-                <div><strong>Tipo:</strong> {diagnosticInfo.fileType}</div>
-                <div><strong>Tamaño:</strong> {diagnosticInfo.fileSize > 1024 ? `${(diagnosticInfo.fileSize / 1024).toFixed(1)} KB` : `${diagnosticInfo.fileSize} bytes`}</div>
-                <div><strong>Tiempo de carga:</strong> {diagnosticInfo.loadTime}ms</div>
-                <div><strong>Promedio escalas/producto:</strong> {diagnosticInfo.totalProducts > 0 ? (diagnosticInfo.totalScales / diagnosticInfo.totalProducts).toFixed(1) : 0}</div>
-              </div>
-            </div>
-          )}
-          
-          {diagnosticInfo.loadErrors.length > 0 && (
-            <div style={{background: '#f8d7da', border: '1px solid #f5c6cb', borderRadius: '6px', padding: '15px', marginBottom: '15px'}}>
-              <div style={{fontWeight: 'bold', color: '#721c24', marginBottom: '10px'}}>❌ Errores de Carga ({diagnosticInfo.loadErrors.length})</div>
-              {diagnosticInfo.loadErrors.map((error, index) => (
-                <div key={index} style={{color: '#721c24', fontSize: '13px', marginBottom: '5px'}}>• {error}</div>
-              ))}
-            </div>
-          )}
-          
-          {diagnosticInfo.loadWarnings.length > 0 && (
-            <div style={{background: '#fff3cd', border: '1px solid #ffeaa7', borderRadius: '6px', padding: '15px', marginBottom: '15px'}}>
-              <div style={{fontWeight: 'bold', color: '#856404', marginBottom: '10px'}}>⚠️ Advertencias ({diagnosticInfo.loadWarnings.length})</div>
-              {diagnosticInfo.loadWarnings.slice(0, 10).map((warning, index) => (
-                <div key={index} style={{color: '#856404', fontSize: '13px', marginBottom: '5px'}}>• {warning}</div>
-              ))}
-              {diagnosticInfo.loadWarnings.length > 10 && (
-                <div style={{color: '#856404', fontSize: '13px', fontStyle: 'italic'}}>
-                  ... y {diagnosticInfo.loadWarnings.length - 10} advertencias más
-                </div>
-              )}
-            </div>
-          )}
-          
-          {/* Botones de Acción */}
-          <div style={{display: 'flex', gap: '10px', marginTop: '20px'}}>
-            <button 
-              onClick={reloadProducts}
-              style={{
-                background: '#28a745',
-                color: 'white',
-                border: 'none',
-                padding: '10px 20px',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
-            >
-              🔄 Recargar Productos
-            </button>
-            
-            <button 
-              onClick={testSearch}
-              style={{
-                background: '#17a2b8',
-                color: 'white',
-                border: 'none',
-                padding: '10px 20px',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
-            >
-              🔍 Probar Búsqueda
-            </button>
-            
-            <button 
-              onClick={testPriceCalculation}
-              style={{
-                background: '#ffc107',
-                color: 'black',
-                border: 'none',
-                padding: '10px 20px',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
-            >
-              💰 Probar Precios
-            </button>
-            
-            <button 
-              onClick={() => {
-                console.log('📊 Productos cargados:', products);
-                console.log('💰 Escalas de precios:', priceScales);
-                console.log('🏢 Clientes:', availableClients);
-                alert('Información detallada enviada a la consola del navegador');
-              }}
-              style={{
-                background: '#6c757d',
-                color: 'white',
-                border: 'none',
-                padding: '10px 20px',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
-            >
-              📋 Ver en Consola
-            </button>
-          </div>
-        </div>
-      )}
+
 
       <div className="form-container">
         <form onSubmit={handleSubmit}>
