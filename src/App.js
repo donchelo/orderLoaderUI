@@ -1,15 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-// Base de datos de productos simulada
-const products = [
-  { ref: 'REF001', name: 'Producto Alpha Series', price: 25000 },
-  { ref: 'REF002', name: 'Producto Beta Professional', price: 35000 },
-  { ref: 'REF003', name: 'Producto Gamma Enterprise', price: 45000 },
-  { ref: 'REF004', name: 'Producto Delta Industrial', price: 55000 },
-  { ref: 'REF005', name: 'Sistema Alpha Control', price: 75000 },
-  { ref: 'REF006', name: 'Módulo Beta Integration', price: 42000 },
-  { ref: 'REF007', name: 'Componente Gamma Advanced', price: 38000 },
-];
+// Configuración de la empresa
+const EMPRESA_ID = 'TU_EMPRESA_ID'; // Cambiar por el ID de tu empresa
+
+// Base de datos de productos (se carga desde CSV)
+let products = [];
 
 function App() {
   const [formData, setFormData] = useState({
@@ -26,13 +21,103 @@ function App() {
   const [lineQuantity, setLineQuantity] = useState(1);
   const [linePrice, setLinePrice] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [productsLoaded, setProductsLoaded] = useState(false);
+  const [loadingProducts, setLoadingProducts] = useState(false);
   
   const searchRef = useRef(null);
 
-  // Configurar fecha mínima (hoy)
+  // Función para limpiar y convertir precio
+  const cleanPrice = (priceStr) => {
+    if (!priceStr) return 0;
+    // Remover comillas, comas y espacios, convertir a número
+    return parseInt(priceStr.toString().replace(/[",\s]/g, '')) || 0;
+  };
+
+  // Función para limpiar y convertir cantidad
+  const cleanQuantity = (qtyStr) => {
+    if (!qtyStr) return 0;
+    // Remover comillas, comas y puntos decimales, convertir a número
+    return parseInt(qtyStr.toString().replace(/[",\.]/g, '')) || 0;
+  };
+
+  // Función para cargar productos desde CSV
+  const loadProductsFromFile = async () => {
+    setLoadingProducts(true);
+    try {
+      const response = await fetch('/data/productos.csv');
+      if (response.ok) {
+        const csvText = await response.text();
+        const lines = csvText.split('\n');
+        
+        // Saltar la primera línea (headers)
+        const dataLines = lines.slice(1);
+        
+        const loadedProducts = dataLines.map(line => {
+          if (!line.trim()) return null;
+          
+          const values = line.split(',');
+          
+          // Estructura del CSV:
+          // 0: Número de artículo, 1: Descripción, 2: Código SN, 3: Nombre SN, 
+          // 9: Cantidad, 10: Precio especial, 11: Moneda
+          
+          const ref = values[0]?.trim() || '';
+          const name = values[1]?.trim() || '';
+          const empresa = values[3]?.trim() || '';
+          const cantidad = values[9] ? cleanQuantity(values[9]) : 0;
+          const precio = values[10] ? cleanPrice(values[10]) : 0;
+          const categoria = values[8]?.trim() || 'General';
+          
+          if (!ref || !name || precio === 0) return null;
+          
+          return {
+            ref: ref,
+            name: name,
+            price: precio,
+            categoria: categoria,
+            stock: cantidad,
+            empresa: empresa,
+            descripcion: name
+          };
+        }).filter(p => p !== null);
+        
+        // Eliminar duplicados basados en ref
+        const uniqueProducts = loadedProducts.reduce((acc, current) => {
+          const existing = acc.find(item => item.ref === current.ref);
+          if (!existing) {
+            acc.push(current);
+          }
+          return acc;
+        }, []);
+        
+        if (uniqueProducts.length > 0) {
+          products = uniqueProducts;
+          console.log(`✅ Productos cargados desde CSV: ${uniqueProducts.length}`);
+          console.log('Primeros 3 productos:', uniqueProducts.slice(0, 3));
+        }
+      } else {
+        console.log('❌ No se pudo cargar el archivo CSV');
+      }
+    } catch (error) {
+      console.log('❌ Error cargando productos:', error);
+      // Productos por defecto en caso de error
+      products = [
+        { ref: 'REF001', name: 'Producto Alpha Series', price: 25000, categoria: 'General', stock: 100 },
+        { ref: 'REF002', name: 'Producto Beta Professional', price: 35000, categoria: 'General', stock: 50 },
+      ];
+    }
+    
+    setProductsLoaded(true);
+    setLoadingProducts(false);
+  };
+
+  // Configurar fecha mínima (hoy) y cargar productos
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
     setFormData(prev => ({ ...prev, deliveryDate: today }));
+    
+    // Cargar productos al iniciar
+    loadProductsFromFile();
   }, []);
 
   // Búsqueda de productos
@@ -45,12 +130,13 @@ function App() {
 
     const filtered = products.filter(p => 
       p.ref.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      p.name.toLowerCase().includes(searchQuery.toLowerCase())
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.categoria && p.categoria.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
     setSearchResults(filtered);
     setShowSearchResults(filtered.length > 0);
-  }, [searchQuery]);
+  }, [searchQuery, productsLoaded]);
 
   // Ocultar resultados al hacer clic fuera
   useEffect(() => {
@@ -82,13 +168,26 @@ function App() {
       return;
     }
 
+    // Verificar stock disponible
+    if (selectedProduct.stock && lineQuantity > selectedProduct.stock) {
+      alert(`Stock insuficiente. Solo hay ${selectedProduct.stock} unidades disponibles.`);
+      return;
+    }
+
     // Verificar si el producto ya existe
     const existingIndex = lineItems.findIndex(item => item.ref === selectedProduct.ref);
     
     if (existingIndex >= 0) {
       const updatedItems = [...lineItems];
-      updatedItems[existingIndex].quantity += lineQuantity;
-      updatedItems[existingIndex].total = updatedItems[existingIndex].quantity * updatedItems[existingIndex].price;
+      const newTotalQuantity = updatedItems[existingIndex].quantity + lineQuantity;
+      
+      if (selectedProduct.stock && newTotalQuantity > selectedProduct.stock) {
+        alert(`Stock insuficiente. Solo hay ${selectedProduct.stock} unidades disponibles.`);
+        return;
+      }
+      
+      updatedItems[existingIndex].quantity = newTotalQuantity;
+      updatedItems[existingIndex].total = newTotalQuantity * updatedItems[existingIndex].price;
       setLineItems(updatedItems);
     } else {
       const newItem = {
@@ -96,7 +195,9 @@ function App() {
         name: selectedProduct.name,
         quantity: lineQuantity,
         price: selectedProduct.price,
-        total: lineQuantity * selectedProduct.price
+        total: lineQuantity * selectedProduct.price,
+        categoria: selectedProduct.categoria,
+        stock: selectedProduct.stock
       };
       setLineItems([...lineItems, newItem]);
     }
@@ -107,6 +208,12 @@ function App() {
   const updateQuantity = (index, newQuantity) => {
     const quantity = parseInt(newQuantity);
     if (quantity > 0) {
+      const item = lineItems[index];
+      if (item.stock && quantity > item.stock) {
+        alert(`Stock insuficiente. Solo hay ${item.stock} unidades disponibles.`);
+        return;
+      }
+      
       const updatedItems = [...lineItems];
       updatedItems[index].quantity = quantity;
       updatedItems[index].total = quantity * updatedItems[index].price;
@@ -153,7 +260,8 @@ function App() {
       observaciones: formData.notes,
       lineas: lineItems,
       total: lineItems.reduce((sum, item) => sum + item.total, 0),
-      fecha: new Date().toISOString()
+      fecha: new Date().toISOString(),
+      empresaId: EMPRESA_ID
     };
 
     console.log('Datos del pedido:', orderData);
@@ -176,6 +284,8 @@ function App() {
       <div className="header">
         <h1>Sistema de Pedidos</h1>
         <p>Generación de órdenes de compra corporativas</p>
+        {loadingProducts && <p style={{color: '#3498db', fontSize: '14px'}}>🔄 Cargando productos desde base de datos...</p>}
+        {productsLoaded && <p style={{color: '#27ae60', fontSize: '14px'}}>✅ Base de datos cargada: {products.length} productos disponibles</p>}
       </div>
 
       <div className="form-container">
@@ -236,19 +346,28 @@ function App() {
                       className="search-input"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Buscar por referencia o nombre del producto"
+                      placeholder="Buscar por referencia, nombre o categoría"
                     />
                     <div className={`search-results ${showSearchResults ? 'show' : ''}`}>
-                      {searchResults.map((product) => (
+                      {searchResults.slice(0, 10).map((product) => (
                         <div
                           key={product.ref}
                           className="search-result-item"
                           onClick={() => selectProduct(product)}
                         >
                           <div><strong>{product.ref}</strong> - {product.name}</div>
-                          <div className="product-info">${product.price.toLocaleString('es-CO')}</div>
+                          <div className="product-info">
+                            ${product.price.toLocaleString('es-CO')} 
+                            {product.categoria && ` | ${product.categoria}`}
+                            {product.stock && ` | Stock: ${product.stock}`}
+                          </div>
                         </div>
                       ))}
+                      {searchResults.length > 10 && (
+                        <div className="search-result-item" style={{fontStyle: 'italic', color: '#7f8c8d'}}>
+                          ... y {searchResults.length - 10} productos más. Refina tu búsqueda.
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -259,6 +378,7 @@ function App() {
                     value={lineQuantity}
                     onChange={(e) => setLineQuantity(parseInt(e.target.value) || 1)}
                     min="1"
+                    max={selectedProduct?.stock || 999999}
                     className="quantity-input"
                   />
                 </div>
@@ -302,6 +422,7 @@ function App() {
                         type="number"
                         value={item.quantity}
                         min="1"
+                        max={item.stock || 999999}
                         className="quantity-input"
                         onChange={(e) => updateQuantity(index, e.target.value)}
                       />
