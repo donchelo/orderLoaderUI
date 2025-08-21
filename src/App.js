@@ -11,6 +11,7 @@ let priceScales = []; // Escalas de precios por producto
 function App() {
   const [formData, setFormData] = useState({
     deliveryDate: '',
+    documentDate: '',
     notes: ''
   });
   
@@ -281,7 +282,11 @@ function App() {
   // Configurar fecha mínima (hoy) y cargar productos
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
-    setFormData(prev => ({ ...prev, deliveryDate: today }));
+    setFormData(prev => ({ 
+      ...prev, 
+      deliveryDate: today,
+      documentDate: today 
+    }));
     
     // Cargar productos al iniciar
     loadProductsFromFile();
@@ -478,8 +483,10 @@ function App() {
 
   const resetForm = () => {
     if (window.confirm('¿Estás seguro de que deseas limpiar todo el formulario?')) {
+      const today = new Date().toISOString().split('T')[0];
       setFormData({
-        deliveryDate: new Date().toISOString().split('T')[0],
+        deliveryDate: today,
+        documentDate: today,
         notes: ''
       });
       setLineItems([]);
@@ -592,6 +599,7 @@ function App() {
 
     const orderData = {
       cliente: selectedClient,
+      fechaDocumento: formData.documentDate,
       fechaEntrega: formData.deliveryDate,
       observaciones: formData.notes,
       lineas: lineItems,
@@ -659,6 +667,22 @@ function App() {
                 )}
               </div>
               <div className="form-group">
+                <label htmlFor="documentDate">Fecha Documento</label>
+                <input
+                  type="text"
+                  id="documentDate"
+                  value={formData.documentDate}
+                  readOnly
+                  style={{ 
+                    background: '#f8f9fa', 
+                    color: '#6c757d',
+                    cursor: 'not-allowed'
+                  }}
+                />
+              </div>
+            </div>
+            <div className="form-row">
+              <div className="form-group">
                 <label htmlFor="deliveryDate">Fecha de Entrega <span className="required">*</span></label>
                 <input
                   type="date"
@@ -669,17 +693,13 @@ function App() {
                   min={new Date().toISOString().split('T')[0]}
                 />
               </div>
-            </div>
-            <div className="form-row full-width">
               <div className="form-group">
-                <label htmlFor="notes">Observaciones</label>
-                <input
-                  type="text"
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                  placeholder="Información adicional del pedido"
-                />
+                <label>&nbsp;</label>
+                <div style={{ height: '44px', display: 'flex', alignItems: 'center' }}>
+                  <span style={{ color: '#6c757d', fontSize: '12px' }}>
+                    📅 Fecha automática del sistema
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -833,6 +853,30 @@ function App() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Observaciones */}
+          <div className="form-section">
+            <div className="section-title">Observaciones</div>
+            <div className="form-group">
+              <label htmlFor="notes">Información adicional del pedido</label>
+              <textarea
+                id="notes"
+                value={formData.notes}
+                onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                placeholder="Agregar observaciones, notas especiales o información adicional del pedido..."
+                rows="4"
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  resize: 'vertical',
+                  fontFamily: 'inherit'
+                }}
+              />
+            </div>
           </div>
 
           {/* Total */}
