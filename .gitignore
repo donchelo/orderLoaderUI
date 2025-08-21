@@ -18,6 +18,12 @@
 .env.test.local
 .env.production.local
 
+# base de datos de productos (archivos privados de la empresa)
+/public/data/productos.xlsx
+/public/data/productos.csv
+/public/data/*.xlsx
+/public/data/*.csv
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
