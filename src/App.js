@@ -23,6 +23,9 @@ function App() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [productsLoaded, setProductsLoaded] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [selectedClient, setSelectedClient] = useState('');
+  const [availableClients, setAvailableClients] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   
   const searchRef = useRef(null);
 
@@ -92,8 +95,14 @@ function App() {
         
         if (uniqueProducts.length > 0) {
           products = uniqueProducts;
+          
+          // Extraer clientes únicos
+          const clients = [...new Set(uniqueProducts.map(p => p.empresa).filter(empresa => empresa))];
+          setAvailableClients(clients);
+          
           console.log(`✅ Productos cargados desde CSV: ${uniqueProducts.length}`);
-          console.log('Primeros 3 productos:', uniqueProducts.slice(0, 3));
+          console.log(`🏢 Clientes disponibles: ${clients.length}`);
+          console.log('Clientes:', clients);
         }
       } else {
         console.log('❌ No se pudo cargar el archivo CSV');
@@ -120,15 +129,32 @@ function App() {
     loadProductsFromFile();
   }, []);
 
-  // Búsqueda de productos
+  // Filtrar productos por cliente seleccionado
   useEffect(() => {
+    if (selectedClient) {
+      const filtered = products.filter(p => p.empresa === selectedClient);
+      setFilteredProducts(filtered);
+      console.log(`📦 Productos filtrados para ${selectedClient}: ${filtered.length}`);
+    } else {
+      setFilteredProducts([]);
+    }
+  }, [selectedClient, productsLoaded]);
+
+  // Búsqueda de productos (solo dentro del cliente seleccionado)
+  useEffect(() => {
+    if (!selectedClient) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+
     if (searchQuery.length < 2) {
       setSearchResults([]);
       setShowSearchResults(false);
       return;
     }
 
-    const filtered = products.filter(p => 
+    const filtered = filteredProducts.filter(p => 
       p.ref.toLowerCase().includes(searchQuery.toLowerCase()) || 
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (p.categoria && p.categoria.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -136,7 +162,7 @@ function App() {
 
     setSearchResults(filtered);
     setShowSearchResults(filtered.length > 0);
-  }, [searchQuery, productsLoaded]);
+  }, [searchQuery, selectedClient, filteredProducts]);
 
   // Ocultar resultados al hacer clic fuera
   useEffect(() => {
@@ -233,6 +259,14 @@ function App() {
     setSelectedProduct(null);
   };
 
+  const handleClientChange = (client) => {
+    setSelectedClient(client);
+    setSearchQuery('');
+    setSelectedProduct(null);
+    setLinePrice('');
+    setLineItems([]); // Limpiar productos del pedido al cambiar cliente
+  };
+
   const resetForm = () => {
     if (window.confirm('¿Estás seguro de que deseas limpiar todo el formulario?')) {
       setFormData({
@@ -241,6 +275,7 @@ function App() {
         notes: ''
       });
       setLineItems([]);
+      setSelectedClient('');
       clearAddLineForm();
       setShowSuccess(false);
     }
@@ -249,6 +284,11 @@ function App() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    if (!selectedClient) {
+      alert('Debe seleccionar un cliente antes de generar la orden');
+      return;
+    }
+
     if (lineItems.length === 0) {
       alert('Debe agregar al menos un producto al pedido');
       return;
@@ -256,6 +296,7 @@ function App() {
 
     const orderData = {
       empresa: formData.company,
+      cliente: selectedClient,
       fechaEntrega: formData.deliveryDate,
       observaciones: formData.notes,
       lineas: lineItems,
@@ -285,7 +326,7 @@ function App() {
         <h1>Sistema de Pedidos</h1>
         <p>Generación de órdenes de compra corporativas</p>
         {loadingProducts && <p style={{color: '#3498db', fontSize: '14px'}}>🔄 Cargando productos desde base de datos...</p>}
-        {productsLoaded && <p style={{color: '#27ae60', fontSize: '14px'}}>✅ Base de datos cargada: {products.length} productos disponibles</p>}
+        {productsLoaded && <p style={{color: '#27ae60', fontSize: '14px'}}>✅ Base de datos cargada: {products.length} productos de {availableClients.length} clientes</p>}
       </div>
 
       <div className="form-container">
@@ -335,6 +376,34 @@ function App() {
           <div className="form-section">
             <div className="section-title">Productos</div>
             
+            {/* Selección de Cliente */}
+            <div className="add-line-section">
+              <div className="form-row full-width">
+                <div className="form-group">
+                  <label htmlFor="clientSelect">Seleccionar Cliente <span className="required">*</span></label>
+                  <select
+                    id="clientSelect"
+                    value={selectedClient}
+                    onChange={(e) => handleClientChange(e.target.value)}
+                    required
+                    style={{ width: '100%', padding: '12px 16px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
+                  >
+                    <option value="">-- Selecciona un cliente --</option>
+                    {availableClients.map((client, index) => (
+                      <option key={index} value={client}>
+                        {client}
+                      </option>
+                    ))}
+                  </select>
+                  {selectedClient && (
+                    <p style={{color: '#27ae60', fontSize: '12px', marginTop: '5px'}}>
+                      📦 {filteredProducts.length} productos disponibles para {selectedClient}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+            
             {/* Agregar Nueva Línea */}
             <div className="add-line-section">
               <div className="add-line-row">
@@ -346,7 +415,8 @@ function App() {
                       className="search-input"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Buscar por referencia, nombre o categoría"
+                      placeholder={selectedClient ? "Buscar por referencia, nombre o categoría" : "Primero selecciona un cliente"}
+                      disabled={!selectedClient}
                     />
                     <div className={`search-results ${showSearchResults ? 'show' : ''}`}>
                       {searchResults.slice(0, 10).map((product) => (
@@ -393,7 +463,13 @@ function App() {
                 </div>
                 <div className="form-group">
                   <label>&nbsp;</label>
-                  <button type="button" className="btn btn-primary" onClick={addLineItem}>
+                  <button 
+                    type="button" 
+                    className="btn btn-primary" 
+                    onClick={addLineItem}
+                    disabled={!selectedClient}
+                    style={{ opacity: !selectedClient ? 0.6 : 1 }}
+                  >
                     Agregar
                   </button>
                 </div>
