@@ -8,7 +8,6 @@ let products = [];
 
 function App() {
   const [formData, setFormData] = useState({
-    company: '',
     deliveryDate: '',
     notes: ''
   });
@@ -270,7 +269,6 @@ function App() {
   const resetForm = () => {
     if (window.confirm('¿Estás seguro de que deseas limpiar todo el formulario?')) {
       setFormData({
-        company: '',
         deliveryDate: new Date().toISOString().split('T')[0],
         notes: ''
       });
@@ -295,7 +293,6 @@ function App() {
     }
 
     const orderData = {
-      empresa: formData.company,
       cliente: selectedClient,
       fechaEntrega: formData.deliveryDate,
       observaciones: formData.notes,
@@ -336,15 +333,26 @@ function App() {
             <div className="section-title">Información General</div>
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="company">Empresa <span className="required">*</span></label>
-                <input
-                  type="text"
-                  id="company"
-                  value={formData.company}
-                  onChange={(e) => setFormData({...formData, company: e.target.value})}
+                <label htmlFor="clientSelect">Cliente <span className="required">*</span></label>
+                <select
+                  id="clientSelect"
+                  value={selectedClient}
+                  onChange={(e) => handleClientChange(e.target.value)}
                   required
-                  placeholder="Nombre de la empresa"
-                />
+                  style={{ width: '100%', padding: '12px 16px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
+                >
+                  <option value="">-- Selecciona un cliente --</option>
+                  {availableClients.map((client, index) => (
+                    <option key={index} value={client}>
+                      {client}
+                    </option>
+                  ))}
+                </select>
+                {selectedClient && (
+                  <p style={{color: '#27ae60', fontSize: '12px', marginTop: '5px'}}>
+                    📦 {filteredProducts.length} productos disponibles para {selectedClient}
+                  </p>
+                )}
               </div>
               <div className="form-group">
                 <label htmlFor="deliveryDate">Fecha de Entrega <span className="required">*</span></label>
@@ -375,34 +383,6 @@ function App() {
           {/* Líneas de Pedido */}
           <div className="form-section">
             <div className="section-title">Productos</div>
-            
-            {/* Selección de Cliente */}
-            <div className="add-line-section">
-              <div className="form-row full-width">
-                <div className="form-group">
-                  <label htmlFor="clientSelect">Seleccionar Cliente <span className="required">*</span></label>
-                  <select
-                    id="clientSelect"
-                    value={selectedClient}
-                    onChange={(e) => handleClientChange(e.target.value)}
-                    required
-                    style={{ width: '100%', padding: '12px 16px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
-                  >
-                    <option value="">-- Selecciona un cliente --</option>
-                    {availableClients.map((client, index) => (
-                      <option key={index} value={client}>
-                        {client}
-                      </option>
-                    ))}
-                  </select>
-                  {selectedClient && (
-                    <p style={{color: '#27ae60', fontSize: '12px', marginTop: '5px'}}>
-                      📦 {filteredProducts.length} productos disponibles para {selectedClient}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
             
             {/* Agregar Nueva Línea */}
             <div className="add-line-section">
