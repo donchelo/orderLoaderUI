@@ -148,30 +148,33 @@ function App() {
       return;
     }
 
-    // Solo buscar si hay al menos 2 caracteres en alguno de los campos
-    if (searchByCode.length < 2 && searchByName.length < 2) {
+    // Solo buscar si hay al menos 1 carácter en alguno de los campos
+    if (searchByCode.length < 1 && searchByName.length < 1) {
       setSearchResults([]);
       setShowSearchResults(false);
       return;
     }
 
     const filtered = filteredProducts.filter(p => {
-      const matchesCode = searchByCode.length >= 2 && 
+      // Búsqueda por Número de artículo (columna 0 del CSV)
+      const matchesCode = searchByCode.length >= 1 && 
         p.ref.toLowerCase().includes(searchByCode.toLowerCase());
       
-      const matchesName = searchByName.length >= 2 && 
+      // Búsqueda por Descripción del artículo (columna 1 del CSV)
+      const matchesName = searchByName.length >= 1 && 
         p.name.toLowerCase().includes(searchByName.toLowerCase());
       
-      const matchesCategory = searchByName.length >= 2 && 
+      // Búsqueda adicional en categoría
+      const matchesCategory = searchByName.length >= 1 && 
         p.categoria && p.categoria.toLowerCase().includes(searchByName.toLowerCase());
       
-      // Si hay búsqueda por código, priorizar esa
-      if (searchByCode.length >= 2) {
+      // Si hay búsqueda por código (Número de artículo), priorizar esa
+      if (searchByCode.length >= 1) {
         return matchesCode;
       }
       
-      // Si solo hay búsqueda por nombre, buscar en nombre y categoría
-      if (searchByName.length >= 2) {
+      // Si solo hay búsqueda por nombre (Descripción), buscar en nombre y categoría
+      if (searchByName.length >= 1) {
         return matchesName || matchesCategory;
       }
       
@@ -410,27 +413,27 @@ function App() {
             <div className="add-line-section">
               <div className="add-line-row">
                 <div className="form-group">
-                  <label>Número de Catálogo</label>
+                  <label>Número de Artículo</label>
                   <div className="search-container" ref={searchRef}>
                     <input
                       type="text"
                       className="search-input"
                       value={searchByCode}
                       onChange={(e) => setSearchByCode(e.target.value)}
-                      placeholder={selectedClient ? "Buscar por código de producto" : "Primero selecciona un cliente"}
+                      placeholder={selectedClient ? "Buscar por número de artículo" : "Primero selecciona un cliente"}
                       disabled={!selectedClient}
                     />
                   </div>
                 </div>
                 <div className="form-group">
-                  <label>Nombre del Producto</label>
+                  <label>Descripción del Artículo</label>
                   <div className="search-container">
                     <input
                       type="text"
                       className="search-input"
                       value={searchByName}
                       onChange={(e) => setSearchByName(e.target.value)}
-                      placeholder={selectedClient ? "Buscar por nombre o categoría" : "Primero selecciona un cliente"}
+                      placeholder={selectedClient ? "Buscar por descripción o categoría" : "Primero selecciona un cliente"}
                       disabled={!selectedClient}
                     />
                   </div>
