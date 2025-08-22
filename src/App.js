@@ -2,7 +2,6 @@ import React, { useRef } from 'react';
 import { useProducts } from './hooks/useProducts';
 import { useClient } from './hooks/useClient';
 import { useOrder } from './hooks/useOrder';
-import { useOrderDebug } from './hooks/useOrder-debug';
 import { generateOrderJSON, saveOrderJSON } from './utils/jsonGenerator';
 import Header from './components/Header/Header';
 import ClientForm from './components/ClientForm/ClientForm';

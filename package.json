@@ -1,6 +1,7 @@
 {
   "name": "order-loader-ui",
   "version": "1.0.0",
+  "homepage": "https://orderLoader.tu-dominio.com",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.4",
