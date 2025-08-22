@@ -3,11 +3,11 @@ import { Package, Search, FileText, CheckCircle, Plus, Trash2, Edit, Upload, Dat
 import { useProducts } from './hooks/useProducts';
 import { useClient } from './hooks/useClient';
 import { useOrder } from './hooks/useOrder';
-import { usePdfUpload } from './hooks/usePdfUpload';
+// import { usePdfUpload } from './hooks/usePdfUpload';
 import { generateOrderJSON, saveOrderJSON } from './utils/jsonGenerator';
 import Header from './components/Header/Header';
 import ClientForm from './components/ClientForm/ClientForm';
-import PdfUpload from './components/PdfUpload/PdfUpload';
+// import PdfUpload from './components/PdfUpload/PdfUpload';
 import OrderHistory from './components/OrderHistory/OrderHistory';
 import ProductManagement from './components/ProductManagement/ProductManagement';
 import Footer from './components/Footer/Footer';
@@ -67,17 +67,17 @@ function App() {
     total
   } = useOrder(filteredProducts, calculatePriceByQuantity);
 
-  // Hook para manejo de carga de PDFs
-  const {
-    showPdfUpload,
-    isProcessingPdf,
-    openPdfUpload,
-    closePdfUpload,
-    handlePdfUploaded
-  } = usePdfUpload();
+  // Hook para manejo de carga de PDFs - OCULTO TEMPORALMENTE
+  // const {
+  //   showPdfUpload,
+  //   isProcessingPdf,
+  //   openPdfUpload,
+  //   closePdfUpload,
+  //   handlePdfUploaded
+  // } = usePdfUpload();
 
-  // Estado para almacenar el PDF subido
-  const [uploadedPdf, setUploadedPdf] = useState(null);
+  // Estado para almacenar el PDF subido - OCULTO TEMPORALMENTE
+  // const [uploadedPdf, setUploadedPdf] = useState(null);
 
   // Estado para navegación entre pantallas
   const [currentView, setCurrentView] = useState('orders'); // 'orders' o 'products'
@@ -110,21 +110,21 @@ function App() {
   const resetForm = (showConfirmation = true) => {
     resetOrder(showConfirmation);
     resetClient();
-    setUploadedPdf(null); // Limpiar también el PDF subido
+    // setUploadedPdf(null); // Limpiar también el PDF subido - OCULTO TEMPORALMENTE
   };
 
-  // Función para manejar la subida de PDF
-  const handlePdfProcessed = async (uploadedFileData) => {
-    const result = await handlePdfUploaded(uploadedFileData);
+  // Función para manejar la subida de PDF - OCULTA TEMPORALMENTE
+  // const handlePdfProcessed = async (uploadedFileData) => {
+  //   const result = await handlePdfUploaded(uploadedFileData);
 
-    if (result.success) {
-      // Almacenar la referencia del PDF subido
-      setUploadedPdf(uploadedFileData);
-      alert(`✅ ${result.message}`);
-    } else {
-      alert(`❌ ${result.message}`);
-    }
-  };
+  //   if (result.success) {
+  //     // Almacenar la referencia del PDF subido
+  //     setUploadedPdf(uploadedFileData);
+  //     alert(`✅ ${result.message}`);
+  //   } else {
+  //     alert(`❌ ${result.message}`);
+  //   }
+  // };
 
   // Funciones para gestión de productos
   const handleAddProduct = (productData) => {
@@ -161,9 +161,9 @@ function App() {
       return;
     }
 
-    // Si no hay productos manuales y no hay PDF subido, mostrar error
-    if (lineItems.length === 0 && !uploadedPdf) {
-      alert('Debe agregar al menos un producto al pedido o subir un PDF con la orden');
+    // Validación: debe agregar al menos un producto al pedido
+    if (lineItems.length === 0) {
+      alert('Debe agregar al menos un producto al pedido');
       return;
     }
 
@@ -173,14 +173,10 @@ function App() {
       fechaEntrega: formData.deliveryDate,
       observaciones: formData.notes,
       lineas: lineItems,
-      total: lineItems.length > 0 ? lineItems.reduce((sum, item) => sum + item.total, 0) : 0,
+      total: lineItems.reduce((sum, item) => sum + item.total, 0),
       fecha: new Date().toISOString(),
       empresaId: 'TU_EMPRESA_ID',
-      pdfReferencia: uploadedPdf ? {
-        id: uploadedPdf.id,
-        nombre: uploadedPdf.name,
-        subidoEn: uploadedPdf.uploadedAt
-      } : null
+      // pdfReferencia: oculta temporalmente
     };
 
     console.log('Datos del pedido:', orderData);
@@ -228,8 +224,8 @@ function App() {
 
         {currentView === 'orders' ? (
           <div className="form-container">
-            {/* Botón para ir a gestión de productos */}
-            <div style={{ 
+            {/* Botón para ir a gestión de productos - OCULTO TEMPORALMENTE */}
+            {/* <div style={{ 
               textAlign: 'right', 
               marginBottom: '20px',
               padding: '15px',
@@ -244,7 +240,7 @@ function App() {
                 <Settings size={16} />
                 Gestionar Productos
               </button>
-            </div>
+            </div> */}
         <form onSubmit={handleSubmit}>
           <ClientForm 
             clientNIT={clientNIT}
@@ -252,8 +248,8 @@ function App() {
             selectedClient={selectedClient}
             isNITLocked={isNITLocked}
             filteredProducts={filteredProducts}
-            onPdfUploadClick={openPdfUpload}
-            uploadedPdf={uploadedPdf}
+            // onPdfUploadClick={openPdfUpload} // OCULTO TEMPORALMENTE
+            // uploadedPdf={uploadedPdf} // OCULTO TEMPORALMENTE
           />
 
           {/* Número de Orden y Fechas */}
@@ -578,8 +574,8 @@ function App() {
               </tbody>
             </table>
             
-            {/* Mensaje informativo cuando no hay productos pero hay PDF */}
-            {lineItems.length === 0 && uploadedPdf && (
+            {/* Mensaje informativo cuando no hay productos pero hay PDF - OCULTO TEMPORALMENTE */}
+            {/* {lineItems.length === 0 && uploadedPdf && (
               <div style={{
                 padding: '15px',
                 backgroundColor: '#d4edda',
@@ -595,7 +591,7 @@ function App() {
                   Puedes generar la orden directamente o agregar productos adicionales manualmente.
                 </div>
               </div>
-            )}
+            )} */}
           </div>
 
           {/* Observaciones */}
@@ -635,7 +631,7 @@ function App() {
                 Limpiar
               </button>
               <button type="submit" className="btn btn-success">
-                {uploadedPdf && lineItems.length === 0 ? 'Generar Orden desde PDF' : 'Generar Orden de Compra'}
+                Generar Orden de Compra
               </button>
             </div>
           </div>
@@ -654,22 +650,31 @@ function App() {
             </form>
           </div>
         ) : (
-          <ProductManagement
-            products={products}
-            onAddProduct={handleAddProduct}
-            onUpdateProduct={handleUpdateProduct}
-            onDeleteProduct={handleDeleteProduct}
-            onImportProducts={handleImportProducts}
-            onBackToOrders={handleBackToOrders}
-          />
+          // ProductManagement oculto temporalmente
+          <div style={{
+            padding: '40px',
+            textAlign: 'center',
+            backgroundColor: '#f8f9fa',
+            borderRadius: '8px',
+            border: '1px solid #dee2e6'
+          }}>
+            <h3>Gestión de Productos</h3>
+            <p>Esta funcionalidad está temporalmente oculta.</p>
+            <button 
+              className="btn btn-primary"
+              onClick={handleBackToOrders}
+            >
+              Volver a Órdenes
+            </button>
+          </div>
         )}
 
         {/* Historial de Órdenes - Solo mostrar en vista de órdenes */}
         {currentView === 'orders' && <OrderHistory />}
       </div>
       
-      {/* Modal de carga de PDF */}
-      {showPdfUpload && (
+      {/* Modal de carga de PDF - OCULTO TEMPORALMENTE */}
+      {/* {showPdfUpload && (
         <div className="modal-overlay">
           <div className="modal-content">
             <PdfUpload 
@@ -678,7 +683,7 @@ function App() {
             />
           </div>
         </div>
-      )}
+      )} */}
       
       <Footer />
     </>

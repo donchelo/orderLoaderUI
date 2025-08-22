@@ -1,5 +1,5 @@
 import React from 'react';
-import { Upload } from 'lucide-react';
+// import { Upload } from 'lucide-react'; // OCULTO TEMPORALMENTE
 import './ClientForm.css';
 
 const ClientForm = ({ 
@@ -7,9 +7,9 @@ const ClientForm = ({
   handleNITChange, 
   selectedClient, 
   isNITLocked, 
-  filteredProducts,
-  onPdfUploadClick,
-  uploadedPdf
+  filteredProducts
+  // onPdfUploadClick, // OCULTO TEMPORALMENTE
+  // uploadedPdf // OCULTO TEMPORALMENTE
 }) => {
   return (
           <div className="form-section">
@@ -55,8 +55,8 @@ const ClientForm = ({
           </div>
         </div>
         
-        {/* Botón para cargar PDF */}
-        <div className="form-row" style={{marginTop: '16px'}}>
+        {/* Botón para cargar PDF - OCULTO TEMPORALMENTE */}
+        {/* <div className="form-row" style={{marginTop: '16px'}}>
           <div className="form-group">
             <button
               type="button"
@@ -106,7 +106,7 @@ const ClientForm = ({
               </p>
             )}
           </div>
-        </div>
+        </div> */}
       </div>
   );
 };

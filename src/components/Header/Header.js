@@ -30,8 +30,8 @@ const Header = ({
         </div>
         
         <div className="header-right">
-          {/* Navegación entre pantallas */}
-          {onViewChange && (
+          {/* Navegación entre pantallas - OCULTA TEMPORALMENTE */}
+          {/* {onViewChange && (
             <div className="navigation-tabs">
               <button
                 className={`nav-tab ${currentView === 'orders' ? 'active' : ''}`}
@@ -48,7 +48,7 @@ const Header = ({
                 Productos
               </button>
             </div>
-          )}
+          )} */}
           
           {/* Estado de carga */}
           <div className="status-indicator">
