@@ -283,7 +283,7 @@ const ProductManagement = ({
                         onClick={() => removeEscala(index)}
                         title="Eliminar escala"
                       >
-                        🗑️
+                        <Trash2 size={14} />
                       </button>
                     )}
                   </div>
@@ -293,7 +293,8 @@ const ProductManagement = ({
                   className="btn btn-secondary btn-small"
                   onClick={addEscala}
                 >
-                  ➕ Agregar Escala de Precio
+                  <Plus size={16} />
+                  Agregar Escala de Precio
                 </button>
               </div>
 
@@ -311,10 +312,10 @@ const ProductManagement = ({
 
         {activeTab === 'import' && (
           <div className="import-products">
-            <h3>📥 Importar Productos Masivamente</h3>
+            <h3>Importar Productos Masivamente</h3>
             
             <div className="import-instructions">
-              <h4>📋 Instrucciones de Importación</h4>
+              <h4>Instrucciones de Importación</h4>
               <p>Para importar productos masivamente, tu archivo debe tener las siguientes columnas en este orden:</p>
               <ul>
                 <li><strong>Columna B (2):</strong> Nombre del producto</li>
@@ -327,7 +328,7 @@ const ProductManagement = ({
               </ul>
               
               <div className="import-notes">
-                <h5>📝 Notas importantes:</h5>
+                <h5>Notas importantes:</h5>
                 <ul>
                   <li>La primera fila debe contener los encabezados (se ignorará)</li>
                   <li>Los productos con referencias duplicadas se saltarán</li>
@@ -348,7 +349,8 @@ const ProductManagement = ({
                   className="btn btn-primary btn-large"
                   onClick={() => fileInputRef.current.click()}
                 >
-                  📁 Seleccionar Archivo para Importar
+                  <Upload size={16} />
+                  Seleccionar Archivo para Importar
                 </button>
                 <p className="file-info">
                   Selecciona un archivo CSV o Excel con los productos a importar
@@ -361,11 +363,11 @@ const ProductManagement = ({
         {activeTab === 'catalog' && (
           <div className="product-catalog">
             <div className="catalog-header">
-              <h3>📋 Catálogo de Productos ({filteredProducts.length} de {products.length})</h3>
+              <h3>Catálogo de Productos ({filteredProducts.length} de {products.length})</h3>
               <div className="search-box">
                 <input
                   type="text"
-                  placeholder="🔍 Buscar productos por referencia, nombre, categoría o empresa..."
+                  placeholder="Buscar productos por referencia, nombre, categoría o empresa..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -375,7 +377,7 @@ const ProductManagement = ({
                     onClick={() => setSearchTerm('')}
                     title="Limpiar búsqueda"
                   >
-                    ✕
+                    <X size={16} />
                   </button>
                 )}
               </div>
@@ -408,14 +410,14 @@ const ProductManagement = ({
                             onClick={() => handleEdit(product)}
                             title="Editar producto"
                           >
-                            ✏️
+                            <Edit size={14} />
                           </button>
                           <button
                             className="btn btn-small btn-danger"
                             onClick={() => onDeleteProduct(product.ref)}
                             title="Eliminar producto"
                           >
-                            🗑️
+                            <Trash2 size={14} />
                           </button>
                         </td>
                       </tr>
@@ -424,7 +426,9 @@ const ProductManagement = ({
                 </table>
               ) : (
                 <div className="no-products">
-                  <div className="no-products-icon">📦</div>
+                  <div className="no-products-icon">
+                    <Database size={48} />
+                  </div>
                   <h4>No se encontraron productos</h4>
                   <p>
                     {searchTerm 
@@ -437,7 +441,8 @@ const ProductManagement = ({
                       className="btn btn-primary"
                       onClick={() => setActiveTab('create')}
                     >
-                      ➕ Crear Primer Producto
+                      <Plus size={16} />
+                      Crear Primer Producto
                     </button>
                   )}
                 </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { FileText, Package, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import './Header.css';
 
 const Header = ({ 
@@ -36,13 +37,15 @@ const Header = ({
                 className={`nav-tab ${currentView === 'orders' ? 'active' : ''}`}
                 onClick={() => onViewChange('orders')}
               >
-                📋 Órdenes
+                <FileText size={16} />
+                Órdenes
               </button>
               <button
                 className={`nav-tab ${currentView === 'products' ? 'active' : ''}`}
                 onClick={() => onViewChange('products')}
               >
-                🏪 Productos
+                <Package size={16} />
+                Productos
               </button>
             </div>
           )}
@@ -50,11 +53,20 @@ const Header = ({
           {/* Estado de carga */}
           <div className="status-indicator">
             {loadingProducts ? (
-              <span className="status loading">🔄 Cargando productos...</span>
+              <span className="status loading">
+                <Loader2 size={14} className="spinning" />
+                Cargando productos...
+              </span>
             ) : productsLoaded ? (
-              <span className="status success">✅ Productos cargados</span>
+              <span className="status success">
+                <CheckCircle size={14} />
+                Productos cargados
+              </span>
             ) : (
-              <span className="status error">❌ Error cargando productos</span>
+              <span className="status error">
+                <XCircle size={14} />
+                Error cargando productos
+              </span>
             )}
           </div>
         </div>

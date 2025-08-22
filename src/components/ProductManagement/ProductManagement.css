@@ -44,6 +44,9 @@
   font-size: 14px;
   transition: all 0.3s ease;
   border-bottom: 3px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .tab:hover {
@@ -362,9 +365,9 @@
 }
 
 .no-products-icon {
-  font-size: 64px;
   margin-bottom: 20px;
   opacity: 0.5;
+  color: black;
 }
 
 .no-products h4 {
