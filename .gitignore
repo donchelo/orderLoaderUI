@@ -26,6 +26,11 @@
 
 # archivos JSON generados (órdenes de compra)
 /public/outputs_json/Procesados/*.json
+/public/outputs_json/Ordenes/*.json
+
+# mantener estructura de carpetas pero ignorar contenido
+!/public/outputs_json/Ordenes/README.md
+!/public/outputs_json/Procesados/README.md
 
 npm-debug.log*
 yarn-debug.log*

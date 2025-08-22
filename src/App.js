@@ -3,9 +3,10 @@ import { useProducts } from './hooks/useProducts';
 import { useClient } from './hooks/useClient';
 import { useOrder } from './hooks/useOrder';
 import { useOrderDebug } from './hooks/useOrder-debug';
-import { generateOrderJSON, downloadJSON } from './utils/jsonGenerator';
+import { generateOrderJSON, saveOrderJSON } from './utils/jsonGenerator';
 import Header from './components/Header/Header';
 import ClientForm from './components/ClientForm/ClientForm';
+import OrderHistory from './components/OrderHistory/OrderHistory';
 import './index.css';
 
 function App() {
@@ -88,7 +89,7 @@ function App() {
   };
 
   // Función para manejar el envío del formulario
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!selectedClient) {
@@ -114,13 +115,14 @@ function App() {
 
     console.log('Datos del pedido:', orderData);
     
-    // Generar y descargar JSON
+    // Generar, guardar y descargar JSON
     try {
       const { jsonData, fileName } = generateOrderJSON(orderData, formData, lineItems, clientNIT, selectedClient);
-      downloadJSON(jsonData, fileName);
+      const result = await saveOrderJSON(jsonData, fileName);
       
-      console.log('✅ JSON generado y descargado:', fileName);
+      console.log('✅ JSON generado y guardado:', fileName);
       console.log('📄 Contenido del JSON:', jsonData);
+      console.log('💾 Resultado del guardado:', result);
       
       setShowSuccess(true);
       
@@ -536,6 +538,9 @@ function App() {
           </div>
         </form>
       </div>
+
+      {/* Historial de Órdenes */}
+      <OrderHistory />
     </div>
   );
 }

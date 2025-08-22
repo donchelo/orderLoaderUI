@@ -1,0 +1,137 @@
+.order-history-section {
+  margin-top: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.history-toggle {
+  padding: 20px;
+  border-bottom: 1px solid #ecf0f1;
+  text-align: center;
+}
+
+.history-content {
+  padding: 0;
+}
+
+.history-header {
+  padding: 20px 30px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.history-header h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.history-table-container {
+  max-height: 400px;
+  overflow-y: auto;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.history-table th {
+  background-color: #2c3e50;
+  color: white;
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.history-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f8f9fa;
+  vertical-align: top;
+}
+
+.history-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.history-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.history-footer {
+  padding: 20px 30px;
+  background-color: #f8f9fa;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .history-table-container {
+    max-height: 300px;
+  }
+  
+  .history-table {
+    font-size: 11px;
+  }
+  
+  .history-table th,
+  .history-table td {
+    padding: 8px 12px;
+  }
+  
+  .history-header {
+    padding: 15px 20px;
+  }
+  
+  .history-footer {
+    padding: 15px 20px;
+  }
+}
+
+/* Animaciones */
+.history-content {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Estados de la tabla */
+.history-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+/* Indicadores visuales */
+.order-status-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.order-status-saved {
+  background-color: #27ae60;
+}
+
+.order-status-downloaded {
+  background-color: #3498db;
+}

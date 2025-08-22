@@ -1,3 +1,6 @@
+// Importar el nuevo servicio de almacenamiento
+import { saveAndDownloadJSON } from './fileStorage';
+
 // Configuración de la empresa
 const EMPRESA_ID = 'TU_EMPRESA_ID'; // Cambiar por el ID de tu empresa
 
@@ -55,7 +58,12 @@ export const generateOrderJSON = (orderData, formData, lineItems, clientNIT, sel
   };
 };
 
-// Función para descargar el JSON
+// Función para guardar y descargar el JSON (nueva versión mejorada)
+export const saveOrderJSON = async (jsonData, fileName) => {
+  return await saveAndDownloadJSON(jsonData, fileName);
+};
+
+// Función legacy para compatibilidad hacia atrás
 export const downloadJSON = (jsonData, fileName) => {
   const dataStr = JSON.stringify(jsonData, null, 2);
   const dataBlob = new Blob([dataStr], { type: 'application/json' });
