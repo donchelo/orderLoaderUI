@@ -138,10 +138,15 @@ export const useOrder = (filteredProducts, calculatePriceByQuantity) => {
 
     setLineItems(prev => [...prev, newItem]);
     
-    // Limpiar formulario de línea
+    // Limpiar formulario de línea COMPLETAMENTE
     setSelectedProduct(null);
+    setSearchByCode(''); // Limpiar campo de búsqueda por código
+    setSearchByName(''); // Limpiar campo de búsqueda por nombre
     setLineQuantity(1);
     setLinePrice('');
+    setShowSearchResults(false); // Ocultar resultados de búsqueda
+    
+    console.log('✅ Producto agregado y formulario limpiado automáticamente');
   };
 
   // Función para actualizar cantidad de una línea
