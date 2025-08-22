@@ -86,7 +86,7 @@ const OrderHistory = () => {
                     </td>
                     <td style={{textAlign: 'center'}}>
                       <span style={{
-                        backgroundColor: '#3498db',
+                        backgroundColor: 'black',
                         color: 'white',
                         padding: '2px 8px',
                         borderRadius: '12px',

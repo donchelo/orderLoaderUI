@@ -20,7 +20,7 @@
 }
 
 .btn:focus {
-  outline: 2px solid var(--color-gray-400);
+  outline: 2px solid black;
   outline-offset: 2px;
 }
 

@@ -1,4 +1,5 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
+import { Package, Search, FileText, CheckCircle, Plus, Trash2, Edit, Upload, Database, Settings } from 'lucide-react';
 import { useProducts } from './hooks/useProducts';
 import { useClient } from './hooks/useClient';
 import { useOrder } from './hooks/useOrder';
@@ -6,6 +7,7 @@ import { generateOrderJSON, saveOrderJSON } from './utils/jsonGenerator';
 import Header from './components/Header/Header';
 import ClientForm from './components/ClientForm/ClientForm';
 import OrderHistory from './components/OrderHistory/OrderHistory';
+import ProductManagement from './components/ProductManagement/ProductManagement';
 import Footer from './components/Footer/Footer';
 import './index.css';
 
@@ -20,7 +22,11 @@ function App() {
     loadingProducts,
     availableClients,
     calculatePriceByQuantity,
-    loadProductsFromFile
+    loadProductsFromFile,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    importProductsFromFile
   } = useProducts();
 
   const {
@@ -58,8 +64,11 @@ function App() {
     total
   } = useOrder(filteredProducts, calculatePriceByQuantity);
 
+  // Estado para navegación entre pantallas
+  const [currentView, setCurrentView] = useState('orders'); // 'orders' o 'products'
+
   // Debug: verificar valores
-  console.log('🔍 App.js - Estado actual:', {
+  console.log('App.js - Estado actual:', {
     productsLength: products.length,
     filteredProductsLength: filteredProducts.length,
     selectedClient,
@@ -72,7 +81,7 @@ function App() {
 
   // Mostrar productos disponibles si hay un cliente seleccionado
   if (selectedClient && filteredProducts.length > 0) {
-    console.log('📦 Productos disponibles para selección:', filteredProducts.slice(0, 3).map(p => `${p.ref} - ${p.name}`));
+    console.log('Productos disponibles para selección:', filteredProducts.slice(0, 3).map(p => `${p.ref} - ${p.name}`));
   }
 
   // Función para recargar productos
@@ -86,6 +95,32 @@ function App() {
   const resetForm = (showConfirmation = true) => {
     resetOrder(showConfirmation);
     resetClient();
+  };
+
+  // Funciones para gestión de productos
+  const handleAddProduct = (productData) => {
+    return addProduct(productData);
+  };
+
+  const handleUpdateProduct = (oldRef, productData) => {
+    updateProduct(oldRef, productData);
+  };
+
+  const handleDeleteProduct = (productRef) => {
+    deleteProduct(productRef);
+  };
+
+  const handleImportProducts = (file) => {
+    importProductsFromFile(file);
+  };
+
+  // Funciones de navegación
+  const handleGoToProducts = () => {
+    setCurrentView('products');
+  };
+
+  const handleBackToOrders = () => {
+    setCurrentView('orders');
   };
 
   // Función para manejar el envío del formulario
@@ -120,9 +155,9 @@ function App() {
       const { jsonData, fileName } = generateOrderJSON(orderData, formData, lineItems, clientNIT, selectedClient);
       const result = await saveOrderJSON(jsonData, fileName);
       
-      console.log('✅ JSON generado y guardado:', fileName);
-      console.log('📄 Contenido del JSON:', jsonData);
-      console.log('💾 Resultado del guardado:', result);
+          console.log('JSON generado y guardado:', fileName);
+    console.log('Contenido del JSON:', jsonData);
+              console.log('Resultado del guardado:', result);
       
       setShowSuccess(true);
       
@@ -149,9 +184,32 @@ function App() {
   return (
     <>
       <div className="container">
-        <Header loadingProducts={loadingProducts} productsLoaded={productsLoaded} />
+        <Header 
+          loadingProducts={loadingProducts} 
+          productsLoaded={productsLoaded}
+          currentView={currentView}
+          onViewChange={setCurrentView}
+        />
 
-        <div className="form-container">
+        {currentView === 'orders' ? (
+          <div className="form-container">
+            {/* Botón para ir a gestión de productos */}
+            <div style={{ 
+              textAlign: 'right', 
+              marginBottom: '20px',
+              padding: '15px',
+              backgroundColor: '#f8f9fa',
+              borderRadius: '8px',
+              border: '1px solid #dee2e6'
+            }}>
+              <button 
+                className="btn btn-primary"
+                onClick={handleGoToProducts}
+              >
+                <Settings size={16} />
+                Gestionar Productos
+              </button>
+            </div>
         <form onSubmit={handleSubmit}>
           <ClientForm 
             clientNIT={clientNIT}
@@ -172,8 +230,8 @@ function App() {
                   value={formData.orderNumber}
                   readOnly
                   style={{ 
-                    background: '#f8f9fa', 
-                    color: '#2c3e50',
+                    background: '#f5f5f5', 
+                    color: 'black',
                     cursor: 'not-allowed',
                     fontWeight: 'bold',
                     fontSize: '16px',
@@ -189,8 +247,8 @@ function App() {
                   value={formData.documentDate}
                   readOnly
                   style={{ 
-                    background: '#f8f9fa', 
-                    color: '#6c757d',
+                    background: '#f5f5f5', 
+                    color: 'black',
                     cursor: 'not-allowed'
                   }}
                 />
@@ -226,10 +284,10 @@ function App() {
                       onChange={(e) => setSearchByCode(e.target.value)}
                       placeholder={selectedClient ? "Buscar por código (ej: REF001)" : "Primero ingresa el NIT del cliente"}
                       disabled={!selectedClient}
-                      style={{
-                        borderColor: searchByCode && searchResults.length === 0 ? '#e74c3c' : '#ddd',
-                        backgroundColor: !selectedClient ? '#f8f9fa' : 'white'
-                      }}
+                                          style={{
+                      borderColor: searchByCode && searchResults.length === 0 ? 'red' : 'black',
+                      backgroundColor: !selectedClient ? '#f5f5f5' : 'white'
+                    }}
                     />
                     {searchByCode && (
                       <button
@@ -250,7 +308,7 @@ function App() {
                         color: '#7f8c8d',
                         fontSize: '12px'
                       }}>
-                        {searchResults.length > 0 ? `📦 ${searchResults.length}` : searchByCode ? '🔍' : '📋'}
+                        {searchResults.length > 0 ? `${searchResults.length} resultados` : searchByCode ? 'Buscando...' : 'Buscar'}
                       </div>
                     )}
                   </div>
@@ -362,9 +420,9 @@ function App() {
                     <h4>
                       {searchByCode || searchByName ? (
                         <>
-                          🔍 Resultados de búsqueda ({searchResults.length})
-                          {searchByCode && <span style={{color: '#3498db'}}> | Código: "{searchByCode}"</span>}
-                          {searchByName && <span style={{color: '#27ae60'}}> | Nombre: "{searchByName}"</span>}
+                          Resultados de búsqueda ({searchResults.length})
+                          {searchByCode && <span style={{color: 'black'}}> | Código: "{searchByCode}"</span>}
+                          {searchByName && <span style={{color: 'green'}}> | Nombre: "{searchByName}"</span>}
                         </>
                       ) : (
                         <>
@@ -537,14 +595,24 @@ function App() {
               ⏰ El sistema se limpiará automáticamente en 3 segundos para crear una nueva orden.
             </p>
           </div>
-        </form>
-      </div>
+            </form>
+          </div>
+        ) : (
+          <ProductManagement
+            products={products}
+            onAddProduct={handleAddProduct}
+            onUpdateProduct={handleUpdateProduct}
+            onDeleteProduct={handleDeleteProduct}
+            onImportProducts={handleImportProducts}
+            onBackToOrders={handleBackToOrders}
+          />
+        )}
 
-      {/* Historial de Órdenes */}
-      <OrderHistory />
-    </div>
-    
-    <Footer />
+        {/* Historial de Órdenes - Solo mostrar en vista de órdenes */}
+        {currentView === 'orders' && <OrderHistory />}
+      </div>
+      
+      <Footer />
     </>
   );
 }

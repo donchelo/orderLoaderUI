@@ -239,6 +239,218 @@ export const useProducts = () => {
     return selectedScale.precio;
   };
 
+  // Nuevas funciones para gestión de productos
+  const addProduct = (productData) => {
+    const newProduct = {
+      ref: productData.ref,
+      name: productData.name,
+      categoria: productData.categoria || 'General',
+      empresa: productData.empresa || '',
+      nit: productData.nit || '',
+      descripcion: productData.descripcion || productData.name
+    };
+
+    // Verificar que la referencia no exista
+    if (products.find(p => p.ref === productData.ref)) {
+      alert('Ya existe un producto con esa referencia');
+      return false;
+    }
+
+    setProducts(prev => [...prev, newProduct]);
+
+    // Agregar escalas de precio
+    if (productData.escalas && productData.escalas.length > 0) {
+      const newScales = productData.escalas.map(escala => ({
+        cantidad: parseInt(escala.cantidad) || 1,
+        precio: parseInt(escala.precio) || 0
+      })).filter(escala => escala.precio > 0);
+
+      if (newScales.length > 0) {
+        setPriceScales(prev => ({
+          ...prev,
+          [productData.ref]: newScales
+        }));
+      }
+    }
+
+    // Actualizar clientes disponibles
+    if (productData.nit && !availableClients.includes(productData.nit)) {
+      setAvailableClients(prev => [...prev, productData.nit]);
+    }
+
+    console.log('✅ Producto agregado:', newProduct);
+    alert('✅ Producto creado exitosamente');
+    return true;
+  };
+
+  const updateProduct = (oldRef, productData) => {
+    const updatedProduct = {
+      ref: oldRef, // Mantener la referencia original
+      name: productData.name,
+      categoria: productData.categoria || 'General',
+      empresa: productData.empresa || '',
+      nit: productData.nit || '',
+      descripcion: productData.descripcion || productData.name
+    };
+
+    setProducts(prev => prev.map(p => 
+      p.ref === oldRef ? updatedProduct : p
+    ));
+
+    // Actualizar escalas de precio
+    if (productData.escalas && productData.escalas.length > 0) {
+      const newScales = productData.escalas.map(escala => ({
+        cantidad: parseInt(escala.cantidad) || 1,
+        precio: parseInt(escala.precio) || 0
+      })).filter(escala => escala.precio > 0);
+
+      if (newScales.length > 0) {
+        setPriceScales(prev => ({
+          ...prev,
+          [oldRef]: newScales
+        }));
+      }
+    }
+
+    // Actualizar clientes disponibles
+    if (productData.nit && !availableClients.includes(productData.nit)) {
+      setAvailableClients(prev => [...prev, productData.nit]);
+    }
+
+    console.log('✅ Producto actualizado:', updatedProduct);
+    alert('✅ Producto actualizado exitosamente');
+  };
+
+  const deleteProduct = (productRef) => {
+    if (window.confirm('¿Estás seguro de que quieres eliminar este producto?\n\nEsta acción no se puede deshacer.')) {
+      setProducts(prev => prev.filter(p => p.ref !== productRef));
+      
+      // Eliminar escalas de precio
+      setPriceScales(prev => {
+        const newScales = { ...prev };
+        delete newScales[productRef];
+        return newScales;
+      });
+
+      console.log('✅ Producto eliminado:', productRef);
+      alert('✅ Producto eliminado exitosamente');
+    }
+  };
+
+  const importProductsFromFile = async (file) => {
+    setLoadingProducts(true);
+    
+    try {
+      const reader = new FileReader();
+      
+      reader.onload = async (e) => {
+        try {
+          let importedData = { products: [], scales: {} };
+          
+          if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+            // Procesar archivo Excel
+            const arrayBuffer = e.target.result;
+            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            
+            importedData = processImportData(jsonData);
+          } else {
+            // Procesar archivo CSV
+            const csvText = e.target.result;
+            const lines = csvText.split('\n');
+            const jsonData = lines.map(line => line.split(','));
+            
+            importedData = processImportData(jsonData);
+          }
+          
+          if (importedData.products.length > 0) {
+            setProducts(prev => [...prev, ...importedData.products]);
+            setPriceScales(prev => ({ ...prev, ...importedData.scales }));
+            
+            // Actualizar clientes disponibles
+            const newNITs = importedData.products
+              .map(p => p.nit)
+              .filter(nit => nit && !availableClients.includes(nit));
+            
+            if (newNITs.length > 0) {
+              setAvailableClients(prev => [...prev, ...newNITs]);
+            }
+            
+            alert(`✅ Se importaron ${importedData.products.length} productos exitosamente`);
+            console.log('📦 Productos importados:', importedData.products);
+          } else {
+            alert('❌ No se pudieron importar productos. Verifica el formato del archivo.');
+          }
+          
+        } catch (error) {
+          console.error('❌ Error procesando archivo:', error);
+          alert('Error al procesar el archivo. Verifica que el formato sea correcto.');
+        }
+      };
+      
+      if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+        reader.readAsArrayBuffer(file);
+      } else {
+        reader.readAsText(file);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error leyendo archivo:', error);
+      alert('Error al leer el archivo.');
+    }
+    
+    setLoadingProducts(false);
+  };
+
+  const processImportData = (data) => {
+    const importedProducts = [];
+    const importedScales = {};
+    
+    data.slice(1).forEach((row, index) => {
+      if (!row || row.length < 10) return;
+      
+      const ref = row[7]?.toString().trim() || '';
+      const name = row[1]?.toString().trim() || '';
+      const empresa = row[3]?.toString().trim() || '';
+      const nit = row[2]?.toString().trim() || '';
+      const cantidad = row[9] ? cleanQuantity(row[9]) : 0;
+      const precioEspecial = row[10] ? cleanPrice(row[10]) : 0;
+      const categoria = row[8]?.toString().trim() || 'General';
+      
+      if (!ref || !name || precioEspecial === 0) return;
+      
+      // Verificar que no exista ya
+      if (products.find(p => p.ref === ref) || importedProducts.find(p => p.ref === ref)) {
+        console.log(`⚠️ Producto ${ref} ya existe, saltando...`);
+        return;
+      }
+      
+      const product = {
+        ref: ref,
+        name: name,
+        categoria: categoria,
+        empresa: empresa,
+        nit: nit,
+        descripcion: name
+      };
+      
+      importedProducts.push(product);
+      
+      if (!importedScales[ref]) {
+        importedScales[ref] = [];
+      }
+      
+      importedScales[ref].push({
+        cantidad: cantidad,
+        precio: precioEspecial
+      });
+    });
+    
+    return { products: importedProducts, scales: importedScales };
+  };
+
   // Cargar productos al inicializar
   useEffect(() => {
     console.log('🚀 Iniciando carga de productos...');
@@ -252,6 +464,10 @@ export const useProducts = () => {
     loadingProducts,
     availableClients,
     calculatePriceByQuantity,
-    loadProductsFromFile
+    loadProductsFromFile,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    importProductsFromFile
   };
 };
