@@ -45,13 +45,11 @@ orderLoaderUI/
 ## 📝 Formato de Nombres de Archivo
 
 ```
-TAM-00001_20241225T172930_9001234567_0002_00005.json
-│         │                │          │    │
-│         │                │          │    └── Total de items (5 dígitos)
-│         │                │          └────── Items únicos (4 dígitos)
-│         │                └──────────────── NIT del cliente (solo números)
-│         └────────────────────────────────── Timestamp (AAAAMMDDTHHMMSS)
-└─────────────────────────────────────────── Número de orden consecutivo
+TAM-00001_EMPRESA_25122024.json
+│         │        │
+│         │        └── Fecha de creación (DDMMYYYY)
+│         └─────────── Clave del cliente (extraída del nombre)
+└─────────────────── Número de orden consecutivo
 ```
 
 ## 🔧 Funcionalidades del Sistema
@@ -127,7 +125,8 @@ constructor() {
 ### **Modificar Formato de Nombre**
 ```javascript
 // En src/utils/jsonGenerator.js
-fileName: `${orderNumber}_${timestamp}_${clientNIT.replace(/[^0-9]/g, '')}_${uniqueItems.toString().padStart(4, '0')}_${totalItems.toString().padStart(5, '0')}.json`
+// Función createElegantFileName() - Personalizar según necesidades
+const fileName = `${orderNumber}_${clientKey}_${dateStr}.json`;
 ```
 
 ## 🔄 Flujo de Trabajo

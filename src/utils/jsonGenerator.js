@@ -52,9 +52,56 @@ export const generateOrderJSON = (orderData, formData, lineItems, clientNIT, sel
     observaciones: formData.notes || ''
   };
 
+  // Crear nombre de archivo elegante y profesional
+  const createElegantFileName = () => {
+    // Extraer información del cliente de manera inteligente
+    let clientKey = 'CLIENTE';
+    
+    if (selectedClient) {
+      // Intentar extraer palabras clave del nombre del cliente
+      const words = selectedClient
+        .replace(/[^a-zA-Z0-9\s]/g, '') // Remover caracteres especiales excepto espacios
+        .split(' ')
+        .filter(word => word.length > 2) // Solo palabras de más de 2 caracteres
+        .map(word => word.toUpperCase());
+      
+      if (words.length > 0) {
+        // Usar la primera palabra significativa
+        clientKey = words[0].substring(0, 6);
+        
+        // Si hay una segunda palabra, agregar sus primeras 2 letras
+        if (words.length > 1) {
+          clientKey += words[1].substring(0, 2);
+        }
+      } else {
+        // Fallback: usar las primeras letras del nombre completo
+        clientKey = selectedClient
+          .replace(/[^a-zA-Z0-9]/g, '')
+          .substring(0, 8)
+          .toUpperCase();
+      }
+    }
+    
+    // Formatear fecha de manera elegante (DDMMYYYY)
+    const date = new Date();
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    const dateStr = `${day}${month}${year}`;
+    
+    // Crear nombre elegante y corto
+    const fileName = `${orderNumber}_${clientKey}_${dateStr}.json`;
+    
+    console.log(`📝 Nombre de archivo generado: ${fileName}`);
+    console.log(`📊 Información: Orden ${orderNumber}, Cliente: ${clientKey}, Fecha: ${dateStr}`);
+    console.log(`🏢 Cliente original: "${selectedClient}" → Clave: "${clientKey}"`);
+    
+    return fileName;
+  };
+
   return {
     jsonData,
-    fileName: `${orderNumber}_${timestamp}_${clientNIT.replace(/[^0-9]/g, '')}_${uniqueItems.toString().padStart(4, '0')}_${totalItems.toString().padStart(5, '0')}.json`
+    fileName: createElegantFileName()
   };
 };
 
