@@ -24,6 +24,9 @@
 /public/data/*.xlsx
 /public/data/*.csv
 
+# archivos JSON generados (órdenes de compra)
+/public/outputs_json/Procesados/*.json
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

@@ -1,594 +1,98 @@
-import React, { useState, useEffect, useRef } from 'react';
-import * as XLSX from 'xlsx';
-
-// Configuración de la empresa
-const EMPRESA_ID = 'TU_EMPRESA_ID'; // Cambiar por el ID de tu empresa
-
-// Base de datos de productos (se carga desde CSV)
-let products = [];
-let priceScales = []; // Escalas de precios por producto
+import React, { useRef } from 'react';
+import { useProducts } from './hooks/useProducts';
+import { useClient } from './hooks/useClient';
+import { useOrder } from './hooks/useOrder';
+import { useOrderDebug } from './hooks/useOrder-debug';
+import { generateOrderJSON, downloadJSON } from './utils/jsonGenerator';
+import Header from './components/Header/Header';
+import ClientForm from './components/ClientForm/ClientForm';
+import './index.css';
 
 function App() {
-  const [formData, setFormData] = useState({
-    deliveryDate: '',
-    documentDate: '',
-    notes: ''
-  });
-  
-  const [lineItems, setLineItems] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [searchByCode, setSearchByCode] = useState('');
-  const [searchByName, setSearchByName] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [showSearchResults, setShowSearchResults] = useState(false);
-  const [lineQuantity, setLineQuantity] = useState(1);
-  const [linePrice, setLinePrice] = useState('');
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [productsLoaded, setProductsLoaded] = useState(false);
-  const [loadingProducts, setLoadingProducts] = useState(false);
-  const [selectedClient, setSelectedClient] = useState('');
-  const [availableClients, setAvailableClients] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
-
-  
   const searchRef = useRef(null);
 
-  // Función para limpiar y convertir precio
-  const cleanPrice = (priceStr) => {
-    if (!priceStr) return 0;
-    // Remover comillas, comas y espacios, convertir a número
-    return parseInt(priceStr.toString().replace(/[",\s]/g, '')) || 0;
-  };
+  // Usar hooks personalizados
+  const {
+    products,
+    priceScales,
+    productsLoaded,
+    loadingProducts,
+    availableClients,
+    calculatePriceByQuantity,
+    loadProductsFromFile
+  } = useProducts();
 
-  // Función para limpiar y convertir cantidad
-  const cleanQuantity = (qtyStr) => {
-    if (!qtyStr) return 0;
-    // Remover comillas, comas y puntos decimales, convertir a número
-    return parseInt(qtyStr.toString().replace(/[",\.]/g, '')) || 0;
-  };
+  const {
+    selectedClient,
+    clientNIT,
+    isNITLocked,
+    filteredProducts,
+    handleNITChange,
+    resetClient
+  } = useClient(products);
 
-  // Función para calcular precio basado en escalas
-  const calculatePriceByQuantity = (productRef, quantity) => {
-    if (!priceScales[productRef] || !quantity || quantity <= 0) {
-      console.log(`❌ No se pudo calcular precio para ${productRef}, cantidad: ${quantity}`);
-      return 0;
-    }
-    
-    const scales = priceScales[productRef];
-    
-    // Ordenar escalas por cantidad (ascendente)
-    const sortedScales = scales.sort((a, b) => a.cantidad - b.cantidad);
-    
-    console.log(`🔍 Calculando precio para ${productRef}, cantidad: ${quantity}`);
-    console.log(`📊 Escalas disponibles:`, sortedScales);
-    
-    // Si solo hay una escala, usar esa
-    if (sortedScales.length === 1) {
-      console.log(`✅ Una sola escala: ${sortedScales[0].cantidad}+ unidades = $${sortedScales[0].precio}`);
-      return sortedScales[0].precio;
-    }
-    
-    // Si hay múltiples escalas, encontrar la que corresponda a la cantidad
-    let selectedScale = sortedScales[0]; // Escala por defecto (la primera)
-    
-    // Buscar la escala apropiada: la cantidad debe ser >= a la cantidad de la escala
-    for (let i = sortedScales.length - 1; i >= 0; i--) {
-      if (quantity >= sortedScales[i].cantidad) {
-        selectedScale = sortedScales[i];
-        break;
-      }
-    }
-    
-    console.log(`✅ Escala seleccionada: ${selectedScale.cantidad}+ unidades = $${selectedScale.precio}`);
-    return selectedScale.precio;
-  };
+  const {
+    formData,
+    setFormData,
+    lineItems,
+    selectedProduct,
+    searchByCode,
+    setSearchByCode,
+    searchByName,
+    setSearchByName,
+    searchResults,
+    showSearchResults,
+    setShowSearchResults,
+    lineQuantity,
+    setLineQuantity,
+    linePrice,
+    showSuccess,
+    setShowSuccess,
+    selectProduct,
+    addLineItem,
+    updateQuantity,
+    removeLineItem,
+    clearAddLineForm,
+    resetOrder,
+    total
+  } = useOrder(filteredProducts, calculatePriceByQuantity);
 
-  // Función para cargar productos desde CSV o XLSX
-  const loadProductsFromFile = async () => {
-    setLoadingProducts(true);
-    
-    try {
-      // Intentar cargar XLSX primero, luego CSV como respaldo
-      let dataLoaded = false;
-      
-      // Intentar cargar XLSX
-      try {
-        const xlsxResponse = await fetch('/data/productos.xlsx');
-        if (xlsxResponse.ok) {
-          const arrayBuffer = await xlsxResponse.arrayBuffer();
-          const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-          const sheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[sheetName];
-          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-          
-          console.log('📊 Cargando desde archivo XLSX...');
-          console.log(`📋 Filas encontradas: ${jsonData.length}`);
-          
-          const loadedProducts = [];
-          const loadedScales = {};
-          const categories = new Set();
-          
-          // Procesar datos del XLSX (asumiendo la misma estructura que CSV)
-          jsonData.slice(1).forEach((row, index) => {
-            if (!row || row.length < 11) {
-              return;
-            }
-            
-            const ref = row[7]?.toString().trim() || ''; // Nº catálogo SN (columna H)
-            const name = row[1]?.toString().trim() || ''; // Descripción del artículo (columna B)
-            const empresa = row[3]?.toString().trim() || '';
-            const cantidad = row[9] ? cleanQuantity(row[9]) : 0;
-            const precioEspecial = row[10] ? cleanPrice(row[10]) : 0; // Precio especial (columna K)
-            const categoria = row[8]?.toString().trim() || 'General';
-            
-            if (!ref || !name) {
-              return;
-            }
-            
-            if (precioEspecial === 0) {
-              return;
-            }
-            
-            // Agregar escala de precio (columna K = precio especial)
-            if (!loadedScales[ref]) {
-              loadedScales[ref] = [];
-            }
-            
-            loadedScales[ref].push({
-              cantidad: cantidad, // Cantidad de la escala (columna J)
-              precio: precioEspecial // Precio especial de la escala (columna K)
-            });
-            
-            // Solo agregar el producto una vez
-            const existingProduct = loadedProducts.find(p => p.ref === ref);
-            if (!existingProduct) {
-              loadedProducts.push({
-                ref: ref,
-                name: name,
-                categoria: categoria,
-                empresa: empresa,
-                descripcion: name
-              });
-              categories.add(categoria);
-            }
-          });
-          
-          if (loadedProducts.length > 0) {
-            products = loadedProducts;
-            priceScales = loadedScales;
-            dataLoaded = true;
-            
-            console.log(`✅ Productos cargados desde XLSX: ${loadedProducts.length}`);
-          }
-        }
-      } catch (xlsxError) {
-        console.log('⚠️ No se pudo cargar XLSX, intentando CSV...');
-      }
-      
-      // Si no se cargó XLSX, intentar CSV
-      if (!dataLoaded) {
-        try {
-          const csvResponse = await fetch('/data/productos.csv');
-          if (csvResponse.ok) {
-            const csvText = await csvResponse.text();
-            const lines = csvText.split('\n');
-            
-            console.log('📊 Cargando desde archivo CSV...');
-            console.log(`📋 Líneas encontradas: ${lines.length}`);
-            
-            const loadedProducts = [];
-            const loadedScales = {};
-            const categories = new Set();
-            
-            lines.slice(1).forEach((line, index) => {
-              if (!line.trim()) return;
-              
-              const values = line.split(',');
-              
-              if (values.length < 11) {
-                return;
-              }
-              
-              const ref = values[7]?.trim() || ''; // Nº catálogo SN (columna H)
-              const name = values[1]?.trim() || ''; // Descripción del artículo (columna B)
-              const empresa = values[3]?.trim() || '';
-              const cantidad = values[9] ? cleanQuantity(values[9]) : 0;
-              const precioEspecial = values[10] ? cleanPrice(values[10]) : 0; // Precio especial (columna K)
-              const categoria = values[8]?.trim() || 'General';
-              
-              if (!ref || !name) {
-                return;
-              }
-              
-              if (precioEspecial === 0) {
-                return;
-              }
-              
-              // Agregar escala de precio (columna K = precio especial)
-              if (!loadedScales[ref]) {
-                loadedScales[ref] = [];
-              }
-              
-              loadedScales[ref].push({
-                cantidad: cantidad, // Cantidad de la escala (columna J)
-                precio: precioEspecial // Precio especial de la escala (columna K)
-              });
-              
-              // Solo agregar el producto una vez
-              const existingProduct = loadedProducts.find(p => p.ref === ref);
-              if (!existingProduct) {
-                loadedProducts.push({
-                  ref: ref,
-                  name: name,
-                  categoria: categoria,
-                  empresa: empresa,
-                  descripcion: name
-                });
-                categories.add(categoria);
-              }
-            });
-            
-            if (loadedProducts.length > 0) {
-              products = loadedProducts;
-              priceScales = loadedScales;
-              dataLoaded = true;
-              
-              console.log(`✅ Productos cargados desde CSV: ${loadedProducts.length}`);
-            }
-          }
-        } catch (csvError) {
-          console.log('❌ Error cargando CSV:', csvError);
-        }
-      }
-      
-      // Si no se cargó ningún archivo, usar datos por defecto
-      if (!dataLoaded) {
-        console.log('⚠️ Usando productos por defecto');
-        products = [
-          { ref: 'REF001', name: 'Producto Alpha Series', categoria: 'General' },
-          { ref: 'REF002', name: 'Producto Beta Professional', categoria: 'General' },
-        ];
-        priceScales = {
-          'REF001': [{ cantidad: 1, precio: 25000 }, { cantidad: 10, precio: 22000 }, { cantidad: 50, precio: 20000 }],
-          'REF002': [{ cantidad: 1, precio: 35000 }, { cantidad: 5, precio: 32000 }, { cantidad: 20, precio: 30000 }]
-        };
-      }
-      
-      // Extraer clientes únicos
-      const clients = [...new Set(products.map(p => p.empresa).filter(empresa => empresa))];
-      setAvailableClients(clients);
-      
-      console.log(`🏢 Clientes disponibles: ${clients.length}`);
-      console.log('Clientes:', clients);
-      
-    } catch (error) {
-      console.log('❌ Error general cargando productos:', error);
-      
-      // Productos por defecto en caso de error
-      products = [
-        { ref: 'REF001', name: 'Producto Alpha Series', categoria: 'General' },
-        { ref: 'REF002', name: 'Producto Beta Professional', categoria: 'General' },
-      ];
-      priceScales = {
-        'REF001': [{ cantidad: 1, precio: 25000 }, { cantidad: 10, precio: 22000 }, { cantidad: 50, precio: 20000 }],
-        'REF002': [{ cantidad: 1, precio: 35000 }, { cantidad: 5, precio: 32000 }, { cantidad: 20, precio: 30000 }]
-      };
-    }
-    
-    setProductsLoaded(true);
-    setLoadingProducts(false);
-  };
+  // Debug: verificar valores
+  console.log('🔍 App.js - Estado actual:', {
+    productsLength: products.length,
+    filteredProductsLength: filteredProducts.length,
+    selectedClient,
+    clientNIT,
+    searchByCode,
+    searchByName,
+    searchResultsLength: searchResults.length,
+    showSearchResults
+  });
 
-  // Configurar fecha mínima (hoy) y cargar productos
-  useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
-    setFormData(prev => ({ 
-      ...prev, 
-      deliveryDate: today,
-      documentDate: today 
-    }));
-    
-    // Cargar productos al iniciar
-    loadProductsFromFile();
-  }, []);
+  // Mostrar productos disponibles si hay un cliente seleccionado
+  if (selectedClient && filteredProducts.length > 0) {
+    console.log('📦 Productos disponibles para selección:', filteredProducts.slice(0, 3).map(p => `${p.ref} - ${p.name}`));
+  }
 
-  // Filtrar productos por cliente seleccionado
-  useEffect(() => {
-    if (selectedClient) {
-      const filtered = products.filter(p => p.empresa === selectedClient);
-      setFilteredProducts(filtered);
-      console.log(`📦 Productos filtrados para ${selectedClient}: ${filtered.length}`);
-    } else {
-      setFilteredProducts([]);
-    }
-  }, [selectedClient, productsLoaded]);
-
-  // Búsqueda de productos (solo dentro del cliente seleccionado)
-  useEffect(() => {
-    if (!selectedClient) {
-      setSearchResults([]);
-      setShowSearchResults(false);
-      return;
-    }
-
-    // Solo buscar si hay al menos 1 carácter en alguno de los campos
-    if (searchByCode.length < 1 && searchByName.length < 1) {
-      setSearchResults([]);
-      setShowSearchResults(false);
-      return;
-    }
-
-    const filtered = filteredProducts.filter(p => {
-      // Búsqueda por Nº catálogo SN (columna H del CSV)
-      const matchesCode = searchByCode.length >= 1 && 
-        p.ref.toLowerCase().includes(searchByCode.toLowerCase());
-      
-      // Búsqueda por Descripción del artículo (columna B del CSV)
-      const matchesName = searchByName.length >= 1 && 
-        p.name.toLowerCase().includes(searchByName.toLowerCase());
-      
-      // Búsqueda adicional en categoría
-      const matchesCategory = searchByName.length >= 1 && 
-        p.categoria && p.categoria.toLowerCase().includes(searchByName.toLowerCase());
-      
-      // Si hay búsqueda por Nº catálogo SN, priorizar esa
-      if (searchByCode.length >= 1) {
-        return matchesCode;
-      }
-      
-      // Si solo hay búsqueda por descripción, buscar en nombre y categoría
-      if (searchByName.length >= 1) {
-        return matchesName || matchesCategory;
-      }
-      
-      return false;
-    });
-
-    setSearchResults(filtered);
-    setShowSearchResults(filtered.length > 0);
-  }, [searchByCode, searchByName, selectedClient, filteredProducts]);
-
-  // Calcular precio automáticamente cuando cambie la cantidad
-  useEffect(() => {
-    if (selectedProduct && lineQuantity > 0) {
-      const calculatedPrice = calculatePriceByQuantity(selectedProduct.ref, lineQuantity);
-      if (calculatedPrice > 0) {
-        setLinePrice(`$${calculatedPrice.toLocaleString('es-CO')}`);
-      } else {
-        setLinePrice('');
-      }
-    }
-  }, [lineQuantity, selectedProduct]);
-
-  // Ocultar resultados al hacer clic fuera
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
-        setShowSearchResults(false);
-      }
-    };
-
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, []);
-
-  const selectProduct = (product) => {
-    setSelectedProduct(product);
-    setSearchByCode(product.ref);
-    setSearchByName(product.name);
-    setLinePrice(''); // El precio se calculará automáticamente cuando se ingrese la cantidad
-    setShowSearchResults(false);
-    
-    // Mostrar información de escalas en consola
-    const scales = priceScales[product.ref] || [];
-    if (scales.length > 0) {
-      const sortedScales = scales.sort((a, b) => a.cantidad - b.cantidad);
-      console.log(`📦 Producto seleccionado: ${product.ref} - ${product.name}`);
-      console.log(`💰 Escalas disponibles:`);
-      sortedScales.forEach((scale, index) => {
-        console.log(`   ${index + 1}. ${scale.cantidad}+ unidades: $${scale.precio.toLocaleString('es-CO')}`);
-      });
-    } else {
-      console.log(`⚠️ Producto ${product.ref} no tiene escalas de precio configuradas`);
-    }
-  };
-
-  const addLineItem = () => {
-    if (!selectedProduct) {
-      alert('Por favor selecciona un producto');
-      return;
-    }
-
-    if (lineQuantity < 1) {
-      alert('La cantidad debe ser mayor a 0');
-      return;
-    }
-
-    // Calcular precio basado en la cantidad
-    const calculatedPrice = calculatePriceByQuantity(selectedProduct.ref, lineQuantity);
-    if (calculatedPrice === 0) {
-      alert('No se pudo calcular el precio para esta cantidad');
-      return;
-    }
-
-    // Verificar si el producto ya existe
-    const existingIndex = lineItems.findIndex(item => item.ref === selectedProduct.ref);
-    
-    if (existingIndex >= 0) {
-      const updatedItems = [...lineItems];
-      const newTotalQuantity = updatedItems[existingIndex].quantity + lineQuantity;
-      
-      // Recalcular precio para la nueva cantidad total
-      const newPrice = calculatePriceByQuantity(selectedProduct.ref, newTotalQuantity);
-      updatedItems[existingIndex].quantity = newTotalQuantity;
-      updatedItems[existingIndex].price = newPrice;
-      updatedItems[existingIndex].total = newTotalQuantity * newPrice;
-      setLineItems(updatedItems);
-    } else {
-      const newItem = {
-        ref: selectedProduct.ref,
-        name: selectedProduct.name,
-        quantity: lineQuantity,
-        price: calculatedPrice,
-        total: lineQuantity * calculatedPrice,
-        categoria: selectedProduct.categoria
-      };
-      setLineItems([...lineItems, newItem]);
-    }
-
-    clearAddLineForm();
-  };
-
-  const updateQuantity = (index, newQuantity) => {
-    const quantity = parseInt(newQuantity);
-    if (quantity > 0) {
-      const item = lineItems[index];
-      
-      // Recalcular precio basado en la nueva cantidad
-      const newPrice = calculatePriceByQuantity(item.ref, quantity);
-      if (newPrice === 0) {
-        alert('No se pudo calcular el precio para esta cantidad');
-        return;
-      }
-      
-      const updatedItems = [...lineItems];
-      updatedItems[index].quantity = quantity;
-      updatedItems[index].price = newPrice;
-      updatedItems[index].total = quantity * newPrice;
-      setLineItems(updatedItems);
-    }
-  };
-
-  const removeLineItem = (index) => {
-    const updatedItems = lineItems.filter((_, i) => i !== index);
-    setLineItems(updatedItems);
-  };
-
-  const clearAddLineForm = () => {
-    setSearchByCode('');
-    setSearchByName('');
-    setLineQuantity(1);
-    setLinePrice('');
-    setSelectedProduct(null);
-  };
-
-  const handleClientChange = (client) => {
-    setSelectedClient(client);
-    setSearchByCode('');
-    setSearchByName('');
-    setSelectedProduct(null);
-    setLinePrice('');
-    setLineItems([]); // Limpiar productos del pedido al cambiar cliente
-  };
-
-  const resetForm = () => {
-    if (window.confirm('¿Estás seguro de que deseas limpiar todo el formulario?')) {
-      const today = new Date().toISOString().split('T')[0];
-      setFormData({
-        deliveryDate: today,
-        documentDate: today,
-        notes: ''
-      });
-      setLineItems([]);
-      setSelectedClient('');
-      clearAddLineForm();
-      setShowSuccess(false);
-    }
-  };
-
+  // Función para recargar productos
   const reloadProducts = async () => {
     if (window.confirm('¿Deseas recargar los productos desde el archivo?')) {
-  
       await loadProductsFromFile();
     }
   };
 
-  const testSearch = () => {
-    if (!selectedClient) {
-      alert('Primero selecciona un cliente para probar la búsqueda');
-      return;
-    }
-    
-    const testResults = {
-      totalProducts: filteredProducts.length,
-      productsWithScales: 0,
-      productsWithoutScales: 0,
-      sampleProducts: []
-    };
-    
-    filteredProducts.forEach(product => {
-      const scales = priceScales[product.ref] || [];
-      if (scales.length > 0) {
-        testResults.productsWithScales++;
-      } else {
-        testResults.productsWithoutScales++;
-      }
-      
-      if (testResults.sampleProducts.length < 5) {
-        testResults.sampleProducts.push({
-          ref: product.ref,
-          name: product.name,
-          scalesCount: scales.length,
-          minPrice: scales.length > 0 ? Math.min(...scales.map(s => s.precio)) : 0,
-          maxPrice: scales.length > 0 ? Math.max(...scales.map(s => s.precio)) : 0
-        });
-      }
-    });
-    
-    console.log('🔍 Resultados de prueba de búsqueda:', testResults);
-    alert(`Prueba de búsqueda completada:\n\n` +
-          `📦 Total productos: ${testResults.totalProducts}\n` +
-          `💰 Con escalas: ${testResults.productsWithScales}\n` +
-          `❌ Sin escalas: ${testResults.productsWithoutScales}\n\n` +
-          `Revisa la consola para más detalles.`);
+  // Función para resetear el formulario
+  const resetForm = (showConfirmation = true) => {
+    resetOrder(showConfirmation);
+    resetClient();
   };
 
-  const testPriceCalculation = () => {
-    if (!selectedClient) {
-      alert('Primero selecciona un cliente para probar el cálculo de precios');
-      return;
-    }
-    
-    const testQuantities = [1, 5, 10, 25, 50, 100];
-    const testResults = [];
-    
-    // Tomar los primeros 3 productos para la prueba
-    const sampleProducts = filteredProducts.slice(0, 3);
-    
-    sampleProducts.forEach(product => {
-      const scales = priceScales[product.ref] || [];
-      if (scales.length > 0) {
-        const sortedScales = scales.sort((a, b) => a.cantidad - b.cantidad);
-        
-        testResults.push({
-          ref: product.ref,
-          name: product.name,
-          scales: sortedScales,
-          calculations: testQuantities.map(qty => ({
-            quantity: qty,
-            price: calculatePriceByQuantity(product.ref, qty)
-          }))
-        });
-      }
-    });
-    
-    console.log('💰 Prueba de cálculo de precios:', testResults);
-    
-    let alertMessage = 'Prueba de cálculo de precios por escalas:\n\n';
-    testResults.forEach(result => {
-      alertMessage += `📦 ${result.ref} - ${result.name}\n`;
-      alertMessage += `💰 Escalas en BD: ${result.scales.map(s => `${s.cantidad}+: $${s.precio.toLocaleString('es-CO')}`).join(' | ')}\n`;
-      alertMessage += `🔢 Cálculos: ${result.calculations.map(c => `${c.quantity}→$${c.price.toLocaleString('es-CO')}`).join(' | ')}\n\n`;
-    });
-    
-    alert(alertMessage + 'Revisa la consola para más detalles.');
-  };
-
+  // Función para manejar el envío del formulario
   const handleSubmit = (e) => {
     e.preventDefault();
 
     if (!selectedClient) {
-      alert('Debe seleccionar un cliente antes de generar la orden');
+      alert('Debe ingresar el NIT del cliente antes de generar la orden');
       return;
     }
 
@@ -605,68 +109,57 @@ function App() {
       lineas: lineItems,
       total: lineItems.reduce((sum, item) => sum + item.total, 0),
       fecha: new Date().toISOString(),
-      empresaId: EMPRESA_ID
+      empresaId: 'TU_EMPRESA_ID'
     };
 
     console.log('Datos del pedido:', orderData);
     
-    setShowSuccess(true);
-    
-    // Scroll al mensaje de éxito
-    setTimeout(() => {
-      const successElement = document.getElementById('successMessage');
-      if (successElement) {
-        successElement.scrollIntoView({ behavior: 'smooth' });
-      }
-    }, 100);
-  };
+    // Generar y descargar JSON
+    try {
+      const { jsonData, fileName } = generateOrderJSON(orderData, formData, lineItems, clientNIT, selectedClient);
+      downloadJSON(jsonData, fileName);
+      
+      console.log('✅ JSON generado y descargado:', fileName);
+      console.log('📄 Contenido del JSON:', jsonData);
+      
+      setShowSuccess(true);
+      
+      // Scroll al mensaje de éxito
+      setTimeout(() => {
+        const successElement = document.getElementById('successMessage');
+        if (successElement) {
+          successElement.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
 
-  const total = lineItems.reduce((sum, item) => sum + item.total, 0);
+      // Limpiar el sistema después de generar la orden
+      setTimeout(() => {
+        console.log('🧹 Limpiando sistema después de generar orden...');
+        resetForm(false); // No mostrar confirmación cuando se limpia automáticamente
+      }, 3000); // Limpiar después de 3 segundos para que el usuario vea el mensaje de éxito
+      
+    } catch (error) {
+      console.error('❌ Error generando JSON:', error);
+      alert('Error al generar el archivo JSON. Revisa la consola para más detalles.');
+    }
+  };
 
   return (
     <div className="container">
-      <div className="header">
-        <h1>Sistema de Pedidos</h1>
-        <p>Generación de órdenes de compra corporativas</p>
-        {loadingProducts && <p style={{color: '#3498db', fontSize: '14px'}}>🔄 Cargando productos desde base de datos...</p>}
-        {productsLoaded && (
-          <p style={{color: '#27ae60', fontSize: '14px', marginTop: '10px'}}>
-            ✅ Base de datos cargada correctamente
-          </p>
-        )}
-      </div>
-
-
+      <Header loadingProducts={loadingProducts} productsLoaded={productsLoaded} />
 
       <div className="form-container">
         <form onSubmit={handleSubmit}>
-          {/* Información General */}
+          <ClientForm 
+            clientNIT={clientNIT}
+            handleNITChange={handleNITChange}
+            selectedClient={selectedClient}
+            isNITLocked={isNITLocked}
+            filteredProducts={filteredProducts}
+          />
+
+          {/* Fechas */}
           <div className="form-section">
-            <div className="section-title">Información General</div>
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="clientSelect">Cliente <span className="required">*</span></label>
-                <select
-                  id="clientSelect"
-                  value={selectedClient}
-                  onChange={(e) => handleClientChange(e.target.value)}
-                  required
-                  style={{ width: '100%', padding: '12px 16px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
-                >
-                  <option value="">-- Selecciona un cliente --</option>
-                  {availableClients.map((client, index) => (
-                    <option key={index} value={client}>
-                      {client}
-                    </option>
-                  ))}
-                </select>
-                {selectedClient && (
-                  <p style={{color: '#27ae60', fontSize: '12px', marginTop: '5px'}}>
-                    📦 {filteredProducts.length} productos disponibles para {selectedClient}
-                  </p>
-                )}
-              </div>
-            </div>
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="documentDate">Fecha Documento</label>
@@ -711,9 +204,35 @@ function App() {
                       className="search-input"
                       value={searchByCode}
                       onChange={(e) => setSearchByCode(e.target.value)}
-                      placeholder={selectedClient ? "Buscar por Nº catálogo SN" : "Primero selecciona un cliente"}
+                      placeholder={selectedClient ? "Buscar por código (ej: REF001)" : "Primero ingresa el NIT del cliente"}
                       disabled={!selectedClient}
+                      style={{
+                        borderColor: searchByCode && searchResults.length === 0 ? '#e74c3c' : '#ddd',
+                        backgroundColor: !selectedClient ? '#f8f9fa' : 'white'
+                      }}
                     />
+                    {searchByCode && (
+                      <button
+                        type="button"
+                        className="search-clear-btn"
+                        onClick={() => setSearchByCode('')}
+                        title="Limpiar búsqueda por código"
+                      >
+                        ✕
+                      </button>
+                    )}
+                    {selectedClient && (
+                      <div style={{
+                        position: 'absolute',
+                        right: searchByCode ? '40px' : '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: '#7f8c8d',
+                        fontSize: '12px'
+                      }}>
+                        {searchResults.length > 0 ? `📦 ${searchResults.length}` : searchByCode ? '🔍' : '📋'}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="form-group">
@@ -724,9 +243,35 @@ function App() {
                       className="search-input"
                       value={searchByName}
                       onChange={(e) => setSearchByName(e.target.value)}
-                      placeholder={selectedClient ? "Buscar por descripción o categoría" : "Primero selecciona un cliente"}
+                      placeholder={selectedClient ? "Buscar por nombre o categoría" : "Primero ingresa el NIT del cliente"}
                       disabled={!selectedClient}
+                      style={{
+                        borderColor: searchByName && searchResults.length === 0 ? '#e74c3c' : '#ddd',
+                        backgroundColor: !selectedClient ? '#f8f9fa' : 'white'
+                      }}
                     />
+                    {searchByName && (
+                      <button
+                        type="button"
+                        className="search-clear-btn"
+                        onClick={() => setSearchByName('')}
+                        title="Limpiar búsqueda por nombre"
+                      >
+                        ✕
+                      </button>
+                    )}
+                    {selectedClient && (
+                      <div style={{
+                        position: 'absolute',
+                        right: searchByName ? '40px' : '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: '#7f8c8d',
+                        fontSize: '12px'
+                      }}>
+                        {searchResults.length > 0 ? `📦 ${searchResults.length}` : searchByName ? '🔍' : '📋'}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="form-group">
@@ -751,9 +296,9 @@ function App() {
                 </div>
                 <div className="form-group">
                   <label>&nbsp;</label>
-                  <button 
-                    type="button" 
-                    className="btn btn-primary" 
+                  <button
+                    type="button"
+                    className="btn btn-primary"
                     onClick={addLineItem}
                     disabled={!selectedClient}
                     style={{ opacity: !selectedClient ? 0.6 : 1 }}
@@ -762,46 +307,118 @@ function App() {
                   </button>
                 </div>
               </div>
-              
+
               {/* Resultados de búsqueda */}
-              <div className="search-container" style={{ marginTop: '10px' }}>
-                <div className={`search-results ${showSearchResults ? 'show' : ''}`}>
-                  {searchResults.slice(0, 10).map((product) => {
-                    const scales = priceScales[product.ref] || [];
-                    const sortedScales = scales.sort((a, b) => a.cantidad - b.cantidad);
-                    const minPrice = scales.length > 0 ? Math.min(...scales.map(s => s.precio)) : 0;
-                    const maxPrice = scales.length > 0 ? Math.max(...scales.map(s => s.precio)) : 0;
-                    
-                    return (
+              {console.log('🔍 Renderizando resultados de búsqueda:', { 
+                showSearchResults, 
+                searchResultsLength: searchResults.length,
+                selectedClient,
+                filteredProductsLength: filteredProducts.length
+              })}
+              
+              {/* Mensaje cuando no hay cliente seleccionado */}
+              {!selectedClient && (
+                <div style={{
+                  padding: '15px',
+                  backgroundColor: '#fff3cd',
+                  border: '1px solid #ffeaa7',
+                  borderRadius: '6px',
+                  marginTop: '10px',
+                  textAlign: 'center',
+                  color: '#856404'
+                }}>
+                  <div style={{fontWeight: 'bold', marginBottom: '5px'}}>📋 Instrucciones</div>
+                  <div style={{fontSize: '13px'}}>
+                    1. Primero ingresa el <strong>NIT del cliente</strong> en la sección "Información General"<br/>
+                    2. Una vez seleccionado el cliente, aquí aparecerán todos sus productos disponibles<br/>
+                    3. Escribe en "Nº Catálogo SN" o "Descripción" para filtrar los productos
+                  </div>
+                </div>
+              )}
+              
+              {showSearchResults && (
+                <div className="search-results" style={{position: 'relative', marginTop: '10px'}}>
+                  <div className="search-results-header">
+                    <h4>
+                      {searchByCode || searchByName ? (
+                        <>
+                          🔍 Resultados de búsqueda ({searchResults.length})
+                          {searchByCode && <span style={{color: '#3498db'}}> | Código: "{searchByCode}"</span>}
+                          {searchByName && <span style={{color: '#27ae60'}}> | Nombre: "{searchByName}"</span>}
+                        </>
+                      ) : (
+                        <>
+                          📦 Todos los productos disponibles ({searchResults.length})
+                          <span style={{color: '#7f8c8d', fontSize: '12px', fontWeight: 'normal'}}>
+                            {' '} - Escribe en "Nº Catálogo SN" o "Descripción" para filtrar
+                          </span>
+                        </>
+                      )}
+                    </h4>
+                    <button
+                      type="button"
+                      className="close-btn"
+                      onClick={() => setShowSearchResults(false)}
+                      title="Cerrar resultados"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="search-results-list" style={{maxHeight: '300px', overflowY: 'auto'}}>
+                    {searchResults.map((product, index) => (
                       <div
-                        key={product.ref}
+                        key={index}
                         className="search-result-item"
                         onClick={() => selectProduct(product)}
+                        style={{
+                          padding: '12px 16px',
+                          cursor: 'pointer',
+                          borderBottom: '1px solid #f8f9fa',
+                          transition: 'background-color 0.2s ease',
+                          backgroundColor: selectedProduct && selectedProduct.ref === product.ref ? '#e8f4fd' : 'white'
+                        }}
+                        onMouseEnter={(e) => e.target.style.backgroundColor = '#f8f9fa'}
+                        onMouseLeave={(e) => e.target.style.backgroundColor = selectedProduct && selectedProduct.ref === product.ref ? '#e8f4fd' : 'white'}
                       >
-                        <div><strong>{product.ref}</strong> - {product.name}</div>
                         <div className="product-info">
-                          {scales.length > 0 ? (
-                            <span>
-                              💰 Precio especial: {scales.length === 1 ? 
-                                `$${scales[0].precio.toLocaleString('es-CO')}` : 
-                                `${scales.length} escalas disponibles`
-                              }
-                            </span>
-                          ) : (
-                            <span>💰 Precio: No disponible</span>
-                          )}
-                          {product.categoria && ` | ${product.categoria}`}
+                          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                            <strong style={{color: '#2c3e50', fontSize: '14px'}}>{product.ref}</strong>
+                            <small style={{color: '#95a5a6', fontSize: '11px'}}>{product.categoria}</small>
+                          </div>
+                          <div style={{marginTop: '4px', color: '#34495e', fontSize: '13px'}}>{product.name}</div>
+                          <div style={{marginTop: '2px', fontSize: '11px', color: '#7f8c8d'}}>
+                            💡 Haz clic para seleccionar este producto
+                          </div>
                         </div>
                       </div>
-                    );
-                  })}
-                  {searchResults.length > 10 && (
-                    <div className="search-result-item" style={{fontStyle: 'italic', color: '#7f8c8d'}}>
-                      ... y {searchResults.length - 10} productos más. Refina tu búsqueda.
+                    ))}
+                  </div>
+                  {searchResults.length === 0 && (
+                    <div style={{padding: '15px', textAlign: 'center', color: '#7f8c8d'}}>
+                      <div>🔍 No se encontraron productos</div>
+                      <div style={{fontSize: '12px', marginTop: '5px'}}>
+                        {searchByCode || searchByName ? 
+                          'Intenta con otros criterios de búsqueda' : 
+                          'No hay productos disponibles para este cliente'
+                        }
+                      </div>
                     </div>
                   )}
                 </div>
-              </div>
+              )}
+
+              {/* Producto seleccionado */}
+              {selectedProduct && (
+                <div className="selected-product">
+                  <div className="selected-product-info">
+                    <h4>Producto Seleccionado</h4>
+                    <p><strong>Referencia:</strong> {selectedProduct.ref}</p>
+                    <p><strong>Nombre:</strong> {selectedProduct.name}</p>
+                    <p><strong>Categoría:</strong> {selectedProduct.categoria}</p>
+                    <p><strong>Precio calculado:</strong> ${linePrice.toLocaleString('es-CO')}</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Tabla de Líneas */}
@@ -890,7 +507,14 @@ function App() {
           </div>
 
           <div className={`success-message ${showSuccess ? 'show' : ''}`} id="successMessage">
-            Orden creada exitosamente. Se ha enviado confirmación por correo electrónico.
+            <h3>✅ Orden de Compra Generada Exitosamente</h3>
+            <p>La orden ha sido procesada y el archivo JSON ha sido descargado automáticamente.</p>
+            <p style={{fontSize: '14px', color: '#666', marginTop: '10px'}}>
+              📄 El archivo JSON contiene todos los datos de la orden en formato estructurado.
+            </p>
+            <p style={{fontSize: '12px', color: '#f39c12', marginTop: '8px', fontStyle: 'italic'}}>
+              ⏰ El sistema se limpiará automáticamente en 3 segundos para crear una nueva orden.
+            </p>
           </div>
         </form>
       </div>
