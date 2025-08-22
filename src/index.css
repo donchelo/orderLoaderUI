@@ -3,6 +3,11 @@
 
 /* Estilos específicos de la aplicación */
 
+/* Asegurar que el contenido principal no se superponga con el footer */
+body {
+  padding-bottom: 40px;
+}
+
 /* Header */
 .header {
   background: var(--bg-primary);

@@ -7,6 +7,7 @@ import { generateOrderJSON, saveOrderJSON } from './utils/jsonGenerator';
 import Header from './components/Header/Header';
 import ClientForm from './components/ClientForm/ClientForm';
 import OrderHistory from './components/OrderHistory/OrderHistory';
+import Footer from './components/Footer/Footer';
 import './index.css';
 
 function App() {
@@ -147,10 +148,11 @@ function App() {
   };
 
   return (
-    <div className="container">
-      <Header loadingProducts={loadingProducts} productsLoaded={productsLoaded} />
+    <>
+      <div className="container">
+        <Header loadingProducts={loadingProducts} productsLoaded={productsLoaded} />
 
-      <div className="form-container">
+        <div className="form-container">
         <form onSubmit={handleSubmit}>
           <ClientForm 
             clientNIT={clientNIT}
@@ -542,6 +544,9 @@ function App() {
       {/* Historial de Órdenes */}
       <OrderHistory />
     </div>
+    
+    <Footer />
+    </>
   );
 }
 

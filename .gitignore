@@ -32,6 +32,10 @@
 !/public/outputs_json/Ordenes/README.md
 !/public/outputs_json/Procesados/README.md
 
+# imágenes del cliente (logos, etc.)
+/public/images/*
+!/public/images/README.md
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
