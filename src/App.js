@@ -3,9 +3,11 @@ import { Package, Search, FileText, CheckCircle, Plus, Trash2, Edit, Upload, Dat
 import { useProducts } from './hooks/useProducts';
 import { useClient } from './hooks/useClient';
 import { useOrder } from './hooks/useOrder';
+import { usePdfUpload } from './hooks/usePdfUpload';
 import { generateOrderJSON, saveOrderJSON } from './utils/jsonGenerator';
 import Header from './components/Header/Header';
 import ClientForm from './components/ClientForm/ClientForm';
+import PdfUpload from './components/PdfUpload/PdfUpload';
 import OrderHistory from './components/OrderHistory/OrderHistory';
 import ProductManagement from './components/ProductManagement/ProductManagement';
 import Footer from './components/Footer/Footer';
@@ -42,6 +44,7 @@ function App() {
     formData,
     setFormData,
     lineItems,
+    setLineItems,
     selectedProduct,
     searchByCode,
     setSearchByCode,
@@ -63,6 +66,18 @@ function App() {
     resetOrder,
     total
   } = useOrder(filteredProducts, calculatePriceByQuantity);
+
+  // Hook para manejo de carga de PDFs
+  const {
+    showPdfUpload,
+    isProcessingPdf,
+    openPdfUpload,
+    closePdfUpload,
+    handlePdfUploaded
+  } = usePdfUpload();
+
+  // Estado para almacenar el PDF subido
+  const [uploadedPdf, setUploadedPdf] = useState(null);
 
   // Estado para navegación entre pantallas
   const [currentView, setCurrentView] = useState('orders'); // 'orders' o 'products'
@@ -95,6 +110,20 @@ function App() {
   const resetForm = (showConfirmation = true) => {
     resetOrder(showConfirmation);
     resetClient();
+    setUploadedPdf(null); // Limpiar también el PDF subido
+  };
+
+  // Función para manejar la subida de PDF
+  const handlePdfProcessed = async (uploadedFileData) => {
+    const result = await handlePdfUploaded(uploadedFileData);
+
+    if (result.success) {
+      // Almacenar la referencia del PDF subido
+      setUploadedPdf(uploadedFileData);
+      alert(`✅ ${result.message}`);
+    } else {
+      alert(`❌ ${result.message}`);
+    }
   };
 
   // Funciones para gestión de productos
@@ -132,8 +161,9 @@ function App() {
       return;
     }
 
-    if (lineItems.length === 0) {
-      alert('Debe agregar al menos un producto al pedido');
+    // Si no hay productos manuales y no hay PDF subido, mostrar error
+    if (lineItems.length === 0 && !uploadedPdf) {
+      alert('Debe agregar al menos un producto al pedido o subir un PDF con la orden');
       return;
     }
 
@@ -143,9 +173,14 @@ function App() {
       fechaEntrega: formData.deliveryDate,
       observaciones: formData.notes,
       lineas: lineItems,
-      total: lineItems.reduce((sum, item) => sum + item.total, 0),
+      total: lineItems.length > 0 ? lineItems.reduce((sum, item) => sum + item.total, 0) : 0,
       fecha: new Date().toISOString(),
-      empresaId: 'TU_EMPRESA_ID'
+      empresaId: 'TU_EMPRESA_ID',
+      pdfReferencia: uploadedPdf ? {
+        id: uploadedPdf.id,
+        nombre: uploadedPdf.name,
+        subidoEn: uploadedPdf.uploadedAt
+      } : null
     };
 
     console.log('Datos del pedido:', orderData);
@@ -217,6 +252,8 @@ function App() {
             selectedClient={selectedClient}
             isNITLocked={isNITLocked}
             filteredProducts={filteredProducts}
+            onPdfUploadClick={openPdfUpload}
+            uploadedPdf={uploadedPdf}
           />
 
           {/* Número de Orden y Fechas */}
@@ -540,6 +577,25 @@ function App() {
                 ))}
               </tbody>
             </table>
+            
+            {/* Mensaje informativo cuando no hay productos pero hay PDF */}
+            {lineItems.length === 0 && uploadedPdf && (
+              <div style={{
+                padding: '15px',
+                backgroundColor: '#d4edda',
+                border: '1px solid #c3e6cb',
+                borderRadius: '6px',
+                marginTop: '15px',
+                textAlign: 'center',
+                color: '#155724'
+              }}>
+                <div style={{fontWeight: 'bold', marginBottom: '5px'}}>📄 PDF Subido</div>
+                <div style={{fontSize: '13px'}}>
+                  Has subido el PDF: <strong>{uploadedPdf.name}</strong><br/>
+                  Puedes generar la orden directamente o agregar productos adicionales manualmente.
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Observaciones */}
@@ -579,7 +635,7 @@ function App() {
                 Limpiar
               </button>
               <button type="submit" className="btn btn-success">
-                Generar Orden de Compra
+                {uploadedPdf && lineItems.length === 0 ? 'Generar Orden desde PDF' : 'Generar Orden de Compra'}
               </button>
             </div>
           </div>
@@ -611,6 +667,18 @@ function App() {
         {/* Historial de Órdenes - Solo mostrar en vista de órdenes */}
         {currentView === 'orders' && <OrderHistory />}
       </div>
+      
+      {/* Modal de carga de PDF */}
+      {showPdfUpload && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <PdfUpload 
+              onPdfProcessed={handlePdfProcessed}
+              onCancel={closePdfUpload}
+            />
+          </div>
+        </div>
+      )}
       
       <Footer />
     </>

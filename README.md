@@ -10,6 +10,7 @@ Una aplicación React moderna para la generación de órdenes de compra corporat
 - **Cálculo automático de precios**: Sistema de escalas de precios basado en cantidades
 - **Validación de formularios**: Campos requeridos y validaciones en tiempo real
 - **Carga de datos desde archivos**: Soporte para archivos XLSX y CSV
+- **Carga de órdenes desde PDF**: Procesamiento automático de órdenes de compra en PDF
 - **Diseño completamente responsivo**: Optimizado para desktop, tablet y móvil
 
 ## 📦 Instalación y Configuración
@@ -55,6 +56,13 @@ Una aplicación React moderna para la generación de órdenes de compra corporat
 - **Cálculo automático**: Totales se actualizan en tiempo real
 - **Escalas de precios**: Precios se ajustan automáticamente según la cantidad
 
+### Carga de Órdenes desde PDF
+- **Subir archivo PDF**: Arrastra y suelta o selecciona un archivo PDF
+- **Almacenamiento**: El archivo se almacena en el sistema con ID único
+- **Creación manual del pedido**: El cliente puede crear el pedido normalmente
+- **Validación de archivos**: Solo acepta PDFs válidos hasta 10MB
+- **Referencia incluida**: Al generar la orden se incluye la referencia al PDF
+
 ### Acciones del Sistema
 - **Limpiar formulario**: Resetea todo el pedido
 - **Generar Orden**: Crea la orden de compra con todos los datos
@@ -72,9 +80,22 @@ orderLoaderUI/
 ├── src/
 │   ├── App.js                  # Componente principal de la aplicación
 │   ├── index.js                # Punto de entrada de React
-│   └── index.css               # Estilos globales y variables CSS
+│   ├── index.css               # Estilos globales y variables CSS
+│   ├── components/
+│   │   ├── PdfUpload/          # Componente de carga de PDFs
+│   │   │   ├── PdfUpload.js    # Lógica del componente
+│   │   │   ├── PdfUpload.css   # Estilos del componente
+│   │   │   └── __tests__/      # Tests del componente
+│   │   └── ...                 # Otros componentes
+│   ├── hooks/
+│   │   ├── usePdfUpload.js     # Hook para manejo de PDFs
+│   │   └── ...                 # Otros hooks
+│   └── utils/
+│       ├── pdfProcessor.js     # Utilidades de procesamiento de PDFs
+│       └── ...                 # Otras utilidades
 ├── package.json                # Configuración del proyecto y dependencias
 ├── .gitignore                  # Archivos ignorados por Git
+├── PDF_INTEGRATION_GUIDE.md    # Guía de integración de PDFs
 └── README.md                   # Documentación del proyecto
 ```
 
