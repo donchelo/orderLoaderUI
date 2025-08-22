@@ -41,21 +41,22 @@ body {
 
 .form-section {
   padding: var(--space-8);
-  border-bottom: 1px solid black;
+  margin-bottom: var(--space-6);
 }
 
 .form-section:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
 }
 
 .section-title {
-  font-size: 2rem; /* 32px - grande */
-  font-weight: 700;
+  font-size: 1.75rem; /* 28px - más proporcionado */
+  font-weight: 800;
   color: black;
-  margin-bottom: var(--space-8);
-  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-3);
   border-bottom: 2px solid black;
   text-align: left;
+  letter-spacing: -0.025em;
 }
 
 .form-row {
@@ -70,29 +71,32 @@ body {
 }
 
 .form-group {
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-6);
 }
 
 .form-group label {
   display: block;
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-2);
   color: black;
   font-weight: 600;
-  font-size: 1.125rem; /* 18px - mediano */
+  font-size: 0.875rem; /* 14px - más pequeño y proporcionado */
   text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
   width: 100%;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid black;
-  border-radius: var(--space-1);
-  font-size: 1rem; /* 16px - mediano */
-  transition: border-color 0.3s ease;
+  padding: var(--space-4) var(--space-4);
+  border: 2px solid #e9ecef;
+  border-radius: var(--space-2);
+  font-size: 0.95rem; /* 15px - proporcionado */
+  transition: all 0.3s ease;
   background: white;
   color: black;
+  font-weight: 500;
 }
 
 .form-group input:focus,
@@ -268,21 +272,47 @@ body {
 }
 
 .add-line-section {
-  background-color: #f5f5f5;
-  padding: 25px;
-  border-radius: 6px;
-  margin-bottom: 25px;
-  border: 1px solid black;
+  background-color: #f8f9fa;
+  padding: var(--space-8);
+  border-radius: var(--space-3);
+  margin-bottom: var(--space-8);
+  border: 2px solid #e9ecef;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .add-line-row {
   display: grid;
   grid-template-columns: 1fr 1fr 100px 140px 100px;
-  gap: 20px;
+  gap: var(--space-5);
   align-items: end;
+  margin-top: var(--space-4);
 }
 
 /* Los botones ahora usan las clases del sistema de diseño */
+
+/* Estilo específico para el botón de agregar producto */
+.add-line-section .btn-primary {
+  background-color: var(--color-black);
+  color: var(--color-white);
+  border: 2px solid var(--color-black);
+  border-radius: var(--space-2);
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.add-line-section .btn-primary:hover:not(:disabled) {
+  background-color: var(--color-black);
+  border-color: var(--color-black);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.add-line-section .btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
 
 .total-section {
   background-color: black;
@@ -300,12 +330,7 @@ body {
   text-align: right;
 }
 
-.form-actions {
-  padding: var(--space-8);
-  text-align: center;
-  background-color: #f5f5f5;
-  border-top: 1px solid black;
-}
+
 
 .required {
   color: red;
@@ -328,11 +353,33 @@ body {
 
 /* Estilos para los botones de acción en la información general */
 .form-group .btn {
-  margin-left: 10px;
+  margin-left: var(--space-4);
+  margin-top: var(--space-2);
 }
 
 .form-group .btn:first-child {
   margin-left: 0;
+  margin-top: 0;
+}
+
+/* Estilos mejorados para la sección de acciones */
+.form-actions {
+  padding: var(--space-8);
+  background: #f8f9fa;
+  border-radius: var(--space-2);
+  margin-top: var(--space-8);
+  border: none !important;
+  box-shadow: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+}
+
+.form-actions .btn {
+  transition: all 0.3s ease;
+}
+
+.form-actions .btn:hover {
+  transform: translateY(-2px);
 }
 
 @media (max-width: 768px) {

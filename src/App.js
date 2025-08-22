@@ -253,7 +253,7 @@ function App() {
           />
 
           {/* Número de Orden y Fechas */}
-          <div className="form-section">
+          <div className="form-section" style={{ marginTop: '32px' }}>
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="orderNumber">Número de Orden</label>
@@ -301,11 +301,11 @@ function App() {
           </div>
 
           {/* Líneas de Pedido */}
-          <div className="form-section">
+          <div className="form-section" style={{ marginTop: '32px' }}>
             <div className="section-title">Productos</div>
             
             {/* Agregar Nueva Línea */}
-            <div className="add-line-section">
+            <div className="add-line-section" style={{ marginTop: '24px' }}>
               <div className="add-line-row">
                 <div className="form-group">
                   <label>Nº Catálogo SN</label>
@@ -412,9 +412,15 @@ function App() {
                     className="btn btn-primary"
                     onClick={addLineItem}
                     disabled={!selectedClient}
-                    style={{ opacity: !selectedClient ? 0.6 : 1 }}
+                    style={{ 
+                      opacity: !selectedClient ? 0.6 : 1,
+                      width: '100%',
+                      height: '44px',
+                      fontSize: '0.9rem',
+                      fontWeight: '600'
+                    }}
                   >
-                    Agregar
+                    ➕ Agregar
                   </button>
                 </div>
               </div>
@@ -430,16 +436,25 @@ function App() {
               {/* Mensaje cuando no hay cliente seleccionado */}
               {!selectedClient && (
                 <div style={{
-                  padding: '15px',
-                  backgroundColor: '#fff3cd',
-                  border: '1px solid #ffeaa7',
-                  borderRadius: '6px',
-                  marginTop: '10px',
-                  textAlign: 'center',
-                  color: '#856404'
+                  padding: 'var(--space-5)',
+                  backgroundColor: '#f8f9fa',
+                  border: '1px solid #e9ecef',
+                  borderRadius: 'var(--space-2)',
+                  marginTop: 'var(--space-4)',
+                  textAlign: 'left',
+                  color: '#6c757d'
                 }}>
-                  <div style={{fontWeight: 'bold', marginBottom: '5px'}}>📋 Instrucciones</div>
-                  <div style={{fontSize: '13px'}}>
+                  <div style={{
+                    fontWeight: '600', 
+                    marginBottom: 'var(--space-3)', 
+                    fontSize: '0.875rem',
+                    color: '#495057',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em'
+                  }}>
+                    📋 Instrucciones
+                  </div>
+                  <div style={{fontSize: '0.8rem', lineHeight: '1.5'}}>
                     1. Primero ingresa el <strong>NIT del cliente</strong> en la sección "Información General"<br/>
                     2. Una vez seleccionado el cliente, aquí aparecerán todos sus productos disponibles<br/>
                     3. Escribe en "Nº Catálogo SN" o "Descripción" para filtrar los productos
@@ -533,7 +548,8 @@ function App() {
             </div>
 
             {/* Tabla de Líneas */}
-            <table className="line-items-table">
+            <div style={{ marginTop: '32px' }}>
+              <table className="line-items-table">
               <thead>
                 <tr>
                   <th>Referencia</th>
@@ -573,6 +589,7 @@ function App() {
                 ))}
               </tbody>
             </table>
+            </div>
             
             {/* Mensaje informativo cuando no hay productos pero hay PDF - OCULTO TEMPORALMENTE */}
             {/* {lineItems.length === 0 && uploadedPdf && (
@@ -595,7 +612,7 @@ function App() {
           </div>
 
           {/* Observaciones */}
-          <div className="form-section">
+          <div className="form-section" style={{ marginTop: '32px' }}>
             <div className="section-title">Observaciones</div>
             <div className="form-group">
               <label htmlFor="notes">Información adicional del pedido</label>
@@ -619,24 +636,65 @@ function App() {
           </div>
 
           {/* Total */}
-          <div className="total-section">
+          <div className="total-section" style={{ marginTop: '32px' }}>
             <div>Total del Pedido</div>
             <div className="total-amount">${total.toLocaleString('es-CO')}</div>
           </div>
 
           {/* Acciones */}
-          <div className="form-actions">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <button type="button" className="btn btn-secondary" onClick={resetForm}>
-                Limpiar
+          <div className="form-actions" style={{ 
+            marginTop: '32px', 
+            border: 'none',
+            borderTop: 'none',
+            borderBottom: 'none',
+            boxShadow: 'none'
+          }}>
+            <div style={{ 
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '24px',
+              border: 'none',
+              borderTop: 'none',
+              borderBottom: 'none'
+            }}>
+              {/* Botón Limpiar - Izquierda */}
+              <button 
+                type="button" 
+                className="btn btn-secondary" 
+                onClick={resetForm}
+                style={{
+                  padding: '12px 24px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  minWidth: '140px'
+                }}
+              >
+                🧹 Limpiar Formulario
               </button>
-              <button type="submit" className="btn btn-success">
-                Generar Orden de Compra
+
+              {/* Botón Generar Orden - Derecha */}
+              <button 
+                type="submit" 
+                className="btn btn-success"
+                style={{
+                  padding: '16px 32px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  minWidth: '220px',
+                  boxShadow: '0 4px 8px rgba(40, 167, 69, 0.2)'
+                }}
+              >
+                📋 Generar Orden de Compra
               </button>
             </div>
           </div>
 
-          <div className={`success-message ${showSuccess ? 'show' : ''}`} id="successMessage">
+          <div 
+            className={`success-message ${showSuccess ? 'show' : ''}`} 
+            id="successMessage"
+            style={{ marginTop: '40px' }}
+          >
             <h3>✅ Orden de Compra Generada Exitosamente</h3>
             <p><strong>Número de Orden:</strong> {formData.orderNumber}</p>
             <p>La orden ha sido procesada y el archivo JSON ha sido descargado automáticamente.</p>
