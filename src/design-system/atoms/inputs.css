@@ -1,0 +1,237 @@
+/* Inputs base */
+.input {
+  display: block;
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--space-4);
+  line-height: 1.5;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  transition: all 0.2s ease-in-out;
+  min-height: 44px;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--border-color-focus);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+.input:disabled {
+  background-color: var(--bg-secondary);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+/* Tamaños de inputs con mayor contraste */
+.input-sm {
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.875rem; /* 14px - pequeño */
+  min-height: 36px;
+}
+
+.input {
+  padding: var(--space-3) var(--space-4);
+  font-size: 1rem; /* 16px - mediano */
+  min-height: 44px;
+}
+
+.input-lg {
+  padding: var(--space-4) var(--space-5);
+  font-size: 1.25rem; /* 20px - grande */
+  min-height: 56px;
+}
+
+.input-xl {
+  padding: var(--space-5) var(--space-6);
+  font-size: 1.5rem; /* 24px - muy grande */
+  min-height: 64px;
+}
+
+/* Estados de inputs */
+.input-error {
+  border-color: var(--color-red);
+}
+
+.input-error:focus {
+  border-color: var(--color-red);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.input-success {
+  border-color: var(--color-green);
+}
+
+.input-success:focus {
+  border-color: var(--color-green);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+/* Inputs con iconos */
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-group .input {
+  padding-left: var(--space-10);
+}
+
+.input-group-icon {
+  position: absolute;
+  left: var(--space-3);
+  color: var(--text-muted);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.input-group .input:focus + .input-group-icon {
+  color: var(--text-primary);
+}
+
+/* Textarea */
+.textarea {
+  resize: vertical;
+  min-height: 100px;
+  font-family: inherit;
+}
+
+/* Select */
+.select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right var(--space-3) center;
+  background-repeat: no-repeat;
+  background-size: 16px 12px;
+  padding-right: var(--space-10);
+}
+
+/* Checkbox y Radio */
+.checkbox,
+.radio {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: var(--space-4);
+  line-height: 1.5;
+  user-select: none;
+}
+
+.checkbox input[type="checkbox"],
+.radio input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.checkbox .checkmark,
+.radio .checkmark {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  margin-right: var(--space-3);
+  border: 2px solid var(--border-color);
+  border-radius: 3px;
+  position: relative;
+  transition: all 0.2s ease-in-out;
+}
+
+.radio .checkmark {
+  border-radius: 50%;
+}
+
+.checkbox input[type="checkbox"]:checked + .checkmark {
+  background-color: var(--color-black);
+  border-color: var(--color-black);
+}
+
+.radio input[type="radio"]:checked + .checkmark {
+  border-color: var(--color-black);
+}
+
+.radio input[type="radio"]:checked + .checkmark::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background-color: var(--color-black);
+  border-radius: 50%;
+}
+
+.checkbox input[type="checkbox"]:checked + .checkmark::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: 4px;
+  height: 8px;
+  border: solid var(--color-white);
+  border-width: 0 2px 2px 0;
+}
+
+.checkbox:hover .checkmark,
+.radio:hover .checkmark {
+  border-color: var(--color-gray-400);
+}
+
+/* Labels */
+.label {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-size: var(--space-4);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.label-required::after {
+  content: ' *';
+  color: var(--color-red);
+}
+
+/* Grupos de formulario */
+.form-group {
+  margin-bottom: var(--space-5);
+}
+
+.form-group .label {
+  margin-bottom: var(--space-2);
+}
+
+.form-group .input,
+.form-group .textarea,
+.form-group .select {
+  margin-top: var(--space-1);
+}
+
+/* Mensajes de error y ayuda */
+.form-message {
+  margin-top: var(--space-2);
+  font-size: var(--space-3);
+  line-height: 1.4;
+}
+
+.form-message-error {
+  color: var(--color-red);
+}
+
+.form-message-help {
+  color: var(--text-muted);
+}
+
+.form-message-success {
+  color: var(--color-green);
+}

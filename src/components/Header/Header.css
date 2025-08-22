@@ -1,20 +1,22 @@
 .header {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  margin-bottom: 30px;
-  border-left: 4px solid #2c3e50;
+  background: var(--bg-primary);
+  padding: var(--space-8);
+  border-radius: var(--space-2);
+  box-shadow: var(--shadow-md);
+  margin-bottom: var(--space-8);
+  border-left: 4px solid var(--color-black);
 }
 
 .header h1 {
-  color: #2c3e50;
-  font-size: 28px;
-  font-weight: 600;
-  margin-bottom: 8px;
+  color: var(--text-primary);
+  font-size: 3rem; /* 48px - muy grande */
+  font-weight: 700;
+  margin-bottom: var(--space-4);
+  text-align: left;
 }
 
 .header p {
-  color: #7f8c8d;
-  font-size: 16px;
+  color: var(--text-secondary);
+  font-size: 1.25rem; /* 20px - mediano */
+  text-align: left;
 }

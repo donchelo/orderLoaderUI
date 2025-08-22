@@ -1,0 +1,30 @@
+:root {
+  /* Colores base - Solo los cuatro colores especificados */
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-green: #22c55e;
+  --color-red: #ef4444;
+  
+  /* Estados de hover */
+  --color-green-hover: #16a34a;
+  --color-red-hover: #dc2626;
+  
+  /* Fondos */
+  --bg-primary: var(--color-white);
+  --bg-secondary: var(--color-white);
+  
+  /* Texto */
+  --text-primary: var(--color-black);
+  --text-secondary: var(--color-black);
+  --text-muted: var(--color-black);
+  --text-inverse: var(--color-white);
+  
+  /* Bordes */
+  --border-color: var(--color-black);
+  --border-color-focus: var(--color-black);
+  
+  /* Sombras */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.15), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+}
