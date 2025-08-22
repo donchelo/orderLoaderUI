@@ -3,8 +3,8 @@ const EMPRESA_ID = 'TU_EMPRESA_ID'; // Cambiar por el ID de tu empresa
 
 // Función para generar el JSON de la orden
 export const generateOrderJSON = (orderData, formData, lineItems, clientNIT, selectedClient) => {
-  // Generar número de orden único
-  const orderNumber = Math.floor(Math.random() * 9000000000) + 1000000000;
+  // Usar el número de orden generado automáticamente
+  const orderNumber = formData.orderNumber || 'TAM-00001';
   
   // Generar timestamp y ID único
   const timestamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0];
@@ -27,7 +27,9 @@ export const generateOrderJSON = (orderData, formData, lineItems, clientNIT, sel
 
   // Crear estructura JSON según el formato requerido
   const jsonData = {
-    orden_compra: orderNumber.toString(),
+    numero_orden: orderNumber,
+    orden_compra: orderNumber,
+    fecha_documento: formatDate(formData.documentDate),
     fecha_entrega: formatDate(formData.deliveryDate),
     comprador: {
       nit: clientNIT,
@@ -43,12 +45,13 @@ export const generateOrderJSON = (orderData, formData, lineItems, clientNIT, sel
     })),
     valor_base: totalValue,
     total_items_unicos: uniqueItems,
-    numero_items_totales: totalItems
+    numero_items_totales: totalItems,
+    observaciones: formData.notes || ''
   };
 
   return {
     jsonData,
-    fileName: `${orderNumber}${timestamp}R${randomId}-${clientNIT.replace(/[^0-9]/g, '')}-${uniqueItems.toString().padStart(4, '0')}-${totalItems.toString().padStart(5, '0')}.json`
+    fileName: `${orderNumber}_${timestamp}_${clientNIT.replace(/[^0-9]/g, '')}_${uniqueItems.toString().padStart(4, '0')}_${totalItems.toString().padStart(5, '0')}.json`
   };
 };
 

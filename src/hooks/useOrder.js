@@ -4,7 +4,8 @@ export const useOrder = (filteredProducts, calculatePriceByQuantity) => {
   const [formData, setFormData] = useState({
     deliveryDate: '',
     documentDate: '',
-    notes: ''
+    notes: '',
+    orderNumber: ''
   });
   
   const [lineItems, setLineItems] = useState([]);
@@ -17,13 +18,34 @@ export const useOrder = (filteredProducts, calculatePriceByQuantity) => {
   const [linePrice, setLinePrice] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Configurar fecha mínima (hoy) al inicializar
+  // Función para generar número de orden consecutivo
+  const generateOrderNumber = () => {
+    // Obtener el último número de orden del localStorage
+    const lastOrderNumber = localStorage.getItem('lastOrderNumber') || 'TAM-00000';
+    const lastNumber = parseInt(lastOrderNumber.split('-')[1]) || 0;
+    const nextNumber = lastNumber + 1;
+    
+    // Formatear con ceros a la izquierda (5 dígitos)
+    const formattedNumber = nextNumber.toString().padStart(5, '0');
+    const newOrderNumber = `TAM-${formattedNumber}`;
+    
+    // Guardar en localStorage para la próxima orden
+    localStorage.setItem('lastOrderNumber', newOrderNumber);
+    
+    console.log(`📋 Número de orden generado: ${newOrderNumber}`);
+    return newOrderNumber;
+  };
+
+  // Configurar fecha mínima (hoy) y número de orden al inicializar
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
+    const orderNumber = generateOrderNumber();
+    
     setFormData(prev => ({ 
       ...prev, 
       deliveryDate: today,
-      documentDate: today 
+      documentDate: today,
+      orderNumber: orderNumber
     }));
   }, []);
 
@@ -191,10 +213,13 @@ export const useOrder = (filteredProducts, calculatePriceByQuantity) => {
     
     if (shouldReset) {
       const today = new Date().toISOString().split('T')[0];
+      const newOrderNumber = generateOrderNumber();
+      
       setFormData({
         deliveryDate: today,
         documentDate: today,
-        notes: ''
+        notes: '',
+        orderNumber: newOrderNumber
       });
       setLineItems([]);
       clearAddLineForm();

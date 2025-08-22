@@ -158,9 +158,26 @@ function App() {
             filteredProducts={filteredProducts}
           />
 
-          {/* Fechas */}
+          {/* Número de Orden y Fechas */}
           <div className="form-section">
             <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="orderNumber">Número de Orden</label>
+                <input
+                  type="text"
+                  id="orderNumber"
+                  value={formData.orderNumber}
+                  readOnly
+                  style={{ 
+                    background: '#f8f9fa', 
+                    color: '#2c3e50',
+                    cursor: 'not-allowed',
+                    fontWeight: 'bold',
+                    fontSize: '16px',
+                    textAlign: 'center'
+                  }}
+                />
+              </div>
               <div className="form-group">
                 <label htmlFor="documentDate">Fecha Documento</label>
                 <input
@@ -508,6 +525,7 @@ function App() {
 
           <div className={`success-message ${showSuccess ? 'show' : ''}`} id="successMessage">
             <h3>✅ Orden de Compra Generada Exitosamente</h3>
+            <p><strong>Número de Orden:</strong> {formData.orderNumber}</p>
             <p>La orden ha sido procesada y el archivo JSON ha sido descargado automáticamente.</p>
             <p style={{fontSize: '14px', color: '#666', marginTop: '10px'}}>
               📄 El archivo JSON contiene todos los datos de la orden en formato estructurado.
