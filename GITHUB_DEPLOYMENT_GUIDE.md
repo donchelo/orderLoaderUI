@@ -1,21 +1,13 @@
-# 🚀 Despliegue Automático con GitHub
+# 🚀 Despliegue Automático con GitHub Pages
 
-## 🎯 **3 Opciones de Despliegue**
+## 🎯 **Configuración Actual**
 
-### **Opción 1: GitHub Pages (Más fácil)**
-- ✅ Gratis
-- ✅ Automático
-- ✅ URL: `https://tu-usuario.github.io/orderLoaderUI`
-
-### **Opción 2: GitHub Pages + Dominio Personalizado**
+### **✅ GitHub Pages + Dominio Personalizado**
 - ✅ Gratis
 - ✅ Tu dominio personalizado
-- ✅ URL: `https://orderLoader.tu-dominio.com`
-
-### **Opción 3: Despliegue directo a GoDaddy**
-- ✅ Automático
-- ✅ Tu servidor GoDaddy
-- ✅ URL: `https://orderLoader.tu-dominio.com`
+- ✅ URL: `https://orderLoader.ai4u.com.co`
+- ✅ Despliegue automático
+- ✅ SSL/HTTPS incluido
 
 ---
 
@@ -27,78 +19,41 @@ npm install gh-pages --save-dev
 
 ---
 
-## 🚀 **PASO 2: Configurar GitHub**
+## 🚀 **PASO 2: Configurar GitHub Pages**
 
-### **Para Opción 1 (GitHub Pages básico):**
-
-1. **Hacer commit y push:**
+### **1. Hacer commit y push:**
 ```bash
 git add .
 git commit -m "Configurar despliegue automático"
-git push origin main
+git push origin master
 ```
 
-2. **Activar GitHub Pages:**
-   - Ve a tu repositorio en GitHub
-   - Settings → Pages
-   - Source: "Deploy from a branch"
-   - Branch: `gh-pages`
-   - Save
+### **2. Activar GitHub Pages:**
+- Ve a tu repositorio en GitHub
+- Settings → Pages
+- Source: "Deploy from a branch"
+- Branch: `gh-pages`
+- Custom domain: `orderLoader.ai4u.com.co`
+- Save
 
-3. **Desplegar:**
+### **3. Desplegar:**
 ```bash
 npm run deploy
-```
-
-### **Para Opción 2 (GitHub Pages + Dominio):**
-
-1. **Configurar CNAME:**
-   - En tu repositorio, ve a Settings → Pages
-   - Agrega tu dominio: `orderLoader.tu-dominio.com`
-   - Guarda
-
-2. **Configurar DNS en GoDaddy:**
-   - CNAME: `orderLoader` → `tu-usuario.github.io`
-   - TTL: 600
-
-3. **Desplegar:**
-```bash
-npm run deploy
-```
-
-### **Para Opción 3 (Despliegue directo a GoDaddy):**
-
-1. **Configurar Secrets en GitHub:**
-   - Ve a tu repositorio → Settings → Secrets and variables → Actions
-   - Agrega estos secrets:
-     - `FTP_SERVER`: tu-servidor-godaddy.com
-     - `FTP_USERNAME`: tu-usuario-ftp
-     - `FTP_PASSWORD`: tu-contraseña-ftp
-
-2. **Hacer push para desplegar:**
-```bash
-git add .
-git commit -m "Configurar despliegue automático a GoDaddy"
-git push origin main
 ```
 
 ---
 
-## 🔧 **Configuración de Dominio**
+## 🔧 **Configuración de DNS**
 
-### **Si usas tu dominio personalizado:**
+### **Configurar CNAME en tu proveedor de DNS:**
+- **Nombre:** `orderLoader`
+- **Valor:** `tu-usuario.github.io`
+- **TTL:** 600
 
-1. **Actualizar package.json:**
-```json
-{
-  "homepage": "https://orderLoader.tu-dominio.com"
-}
-```
-
-2. **Crear archivo CNAME:**
-```
-orderLoader.tu-dominio.com
-```
+### **Ejemplo:**
+Si tu usuario de GitHub es `donchelo`, el CNAME debe ser:
+- **Nombre:** `orderLoader`
+- **Valor:** `donchelo.github.io`
 
 ---
 
@@ -155,12 +110,12 @@ npm start
 
 ## 🎉 **Ventajas del despliegue automático**
 
-1. **Automático:** Cada push a main se despliega
+1. **Automático:** Cada push a master se despliega
 2. **Versionado:** Cada despliegue tiene su versión
 3. **Rollback:** Puedes volver a versiones anteriores
 4. **Historial:** Logs completos de cada despliegue
-5. **Seguro:** Credenciales protegidas en secrets
+5. **Gratis:** GitHub Pages es completamente gratuito
 
 ---
 
-**¿Qué opción prefieres? Te recomiendo la Opción 2 (GitHub Pages + tu dominio) porque es gratis y profesional.**
+**Tu aplicación está configurada para desplegarse automáticamente en `https://orderLoader.ai4u.com.co` usando GitHub Pages.**
