@@ -18,23 +18,23 @@
 - [ ] `package.json` tiene `homepage` configurado
 - [ ] URL del dominio actualizada en la configuración
 
-## 🌐 Configuración en GoDaddy
+## 🌐 Configuración de DNS
 
 ### ✅ DNS/Subdominio
 - [ ] CNAME `orderLoader` creado en DNS
 - [ ] TTL configurado (600 o por defecto)
 - [ ] Propagación DNS completada (puede tomar hasta 24h)
 
-### ✅ Hosting
-- [ ] Acceso FTP/SFTP configurado
-- [ ] Credenciales de acceso disponibles
-- [ ] Espacio suficiente en el hosting
+### ✅ GitHub Pages
+- [ ] Repositorio público
+- [ ] GitHub Pages activado
+- [ ] Dominio personalizado configurado
 
 ## 📁 Estructura de Archivos
 
-### ✅ En el servidor (public_html/orderLoader/)
+### ✅ En GitHub Pages
 ```
-orderLoader/
+build/
 ├── index.html
 ├── .htaccess
 ├── static/
@@ -82,13 +82,13 @@ orderLoader/
 
 ## 🚀 Despliegue Final
 
-### ✅ Subida de Archivos
-- [ ] Todos los archivos de `build/` subidos
-- [ ] Estructura de carpetas correcta
-- [ ] Permisos de archivos correctos (644 para archivos, 755 para carpetas)
+### ✅ Despliegue en GitHub Pages
+- [ ] `npm run deploy` ejecutado exitosamente
+- [ ] Branch `gh-pages` creado
+- [ ] GitHub Pages activado
 
 ### ✅ Verificación Post-Despliegue
-- [ ] URL accesible: `https://orderLoader.tu-dominio.com`
+- [ ] URL accesible: `https://orderLoader.ai4u.com.co`
 - [ ] Sin errores 404
 - [ ] Sin errores de JavaScript en consola
 - [ ] Tiempo de carga aceptable
@@ -97,9 +97,9 @@ orderLoader/
 ## 📞 Contacto de Emergencia
 
 Si algo sale mal:
-1. Revisa los logs de error en GoDaddy
+1. Revisa los logs en GitHub Actions
 2. Verifica la configuración DNS
-3. Contacta soporte de GoDaddy
+3. Revisa GitHub Pages settings
 4. Documenta el problema para futuras referencias
 
 ---

@@ -8,20 +8,20 @@
 ## 🌐 **URL de Acceso**
 **Tu aplicación estará disponible en:** `https://orderLoader.ai4u.com.co`
 
-## 🔧 **Configuración de DNS en GoDaddy**
+## 🔧 **Configuración de DNS**
 
-### **PASO 1: Configurar CNAME en GoDaddy**
-1. Ve a tu panel de control de GoDaddy
+### **PASO 1: Configurar CNAME en tu proveedor de DNS**
+1. Ve a tu panel de control de DNS
 2. Busca "DNS" o "Administrar DNS"
 3. Encuentra tu dominio `ai4u.com.co`
 4. **Modifica el CNAME existente:**
    - **Nombre:** `orderLoader`
-   - **Valor:** `tu-usuario-github.github.io` (reemplaza con tu usuario de GitHub)
+   - **Valor:** `donchelo.github.io` (tu usuario de GitHub)
    - **TTL:** 600
 
 ### **PASO 2: Verificar configuración**
 - El CNAME debe apuntar a tu usuario de GitHub + `.github.io`
-- Ejemplo: Si tu usuario es `chelo`, el valor debe ser `chelo.github.io`
+- En tu caso: `donchelo.github.io`
 
 ## 🚀 **Despliegue Automático**
 
@@ -65,7 +65,7 @@ git push origin master
 
 ### **Si la URL no funciona:**
 1. **Verifica el DNS:** Espera hasta 24 horas para propagación
-2. **Revisa el CNAME:** Debe apuntar a `tu-usuario.github.io`
+2. **Revisa el CNAME:** Debe apuntar a `donchelo.github.io`
 3. **Verifica GitHub Pages:** En tu repositorio → Settings → Pages
 
 ### **Si hay errores:**
@@ -98,4 +98,4 @@ Tu aplicación OrderLoader está configurada para:
 - ✅ Logo del cliente integrado
 - ✅ Tu marca en el footer
 
-**Próximo paso:** Configura el CNAME en GoDaddy y espera la propagación DNS.
+**Próximo paso:** Configura el CNAME en tu proveedor de DNS y espera la propagación DNS.
