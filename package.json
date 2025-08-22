@@ -21,7 +21,8 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d build",
+    "prepare": "husky"
   },
   "eslintConfig": {
     "extends": [
@@ -42,6 +43,12 @@
     ]
   },
   "devDependencies": {
-    "gh-pages": "^6.3.0"
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "gh-pages": "^6.3.0",
+    "husky": "^9.1.7",
+    "semantic-release": "^24.2.7"
   }
 }

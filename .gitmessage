@@ -1,0 +1,29 @@
+# <type>(<scope>): <subject>
+#
+# <body>
+#
+# <footer>
+#
+# Tipo de cambio:
+# feat:     Nueva funcionalidad
+# fix:      Corrección de errores
+# docs:     Cambios en documentación
+# style:    Cambios de formato (espacios, comas, etc)
+# refactor: Refactorización de código
+# perf:     Mejoras de rendimiento
+# test:     Añadir o modificar tests
+# chore:    Cambios en herramientas de build, dependencias, etc
+# ci:       Cambios en CI/CD
+#
+# Scope (opcional): componente/módulo afectado
+# Subject: descripción corta (máx 50 caracteres)
+# Body (opcional): explicación detallada del cambio
+# Footer (opcional): Breaking changes, issues cerrados, etc
+#
+# Ejemplo:
+# feat(auth): add user authentication system
+#
+# Implement JWT-based authentication with login/logout
+# functionality for secure user access.
+#
+# Closes #123

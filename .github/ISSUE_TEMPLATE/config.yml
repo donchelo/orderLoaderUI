@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🤝 Soporte General
+    url: https://github.com/donchelo/orderLoaderUI/discussions
+    about: Para preguntas generales y discusiones sobre el proyecto
+  - name: 📚 Documentación
+    url: https://github.com/donchelo/orderLoaderUI/tree/master/docs
+    about: Revisa la documentación del proyecto

@@ -1,6 +1,10 @@
-# Sistema de Pedidos - React
+# 🛒 OrderLoader UI - Sistema de Pedidos
 
-Una aplicación React moderna para la generación de órdenes de compra corporativas, desarrollada con las mejores prácticas de React y una interfaz de usuario intuitiva.
+Una aplicación React moderna para la generación de órdenes de compra corporativas, desarrollada con las mejores prácticas de Git, CI/CD y una interfaz de usuario intuitiva.
+
+[![🔄 CI Pipeline](https://github.com/donchelo/orderLoaderUI/actions/workflows/ci.yml/badge.svg)](https://github.com/donchelo/orderLoaderUI/actions/workflows/ci.yml)
+[![🚀 Deploy to GitHub Pages](https://github.com/donchelo/orderLoaderUI/actions/workflows/deploy.yml/badge.svg)](https://github.com/donchelo/orderLoaderUI/actions/workflows/deploy.yml)
+[![🏷️ Release](https://github.com/donchelo/orderLoaderUI/actions/workflows/release.yml/badge.svg)](https://github.com/donchelo/orderLoaderUI/actions/workflows/release.yml)
 
 ## 🚀 Características Principales
 
@@ -217,11 +221,27 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 
 ## 🤝 Contribución
 
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+¡Las contribuciones son bienvenidas! Este proyecto sigue estándares profesionales de desarrollo.
+
+### 🚀 Guía Rápida
+
+1. **Fork** el proyecto
+2. **Clona** tu fork: `git clone https://github.com/tu-usuario/orderLoaderUI.git`
+3. **Crea una rama**: `git checkout -b feat/nueva-funcionalidad`
+4. **Haz tus cambios** siguiendo los estándares del proyecto
+5. **Commit** usando [Conventional Commits](https://www.conventionalcommits.org/):
+   ```bash
+   git commit -m "feat(search): add advanced product filtering"
+   ```
+6. **Push** tu rama: `git push origin feat/nueva-funcionalidad`
+7. **Abre un Pull Request** usando nuestro template
+
+### 📚 Documentación Completa
+
+- 📖 [Guía de Contribución](./CONTRIBUTING.md)
+- 🔄 [Flujo de Trabajo Git](./docs/GIT_WORKFLOW.md)
+- 🛡️ [Configuración de Branch Protection](./docs/BRANCH_PROTECTION_SETUP.md)
+- 🏗️ [Arquitectura del Proyecto](./docs/ARCHITECTURE.md)
 
 ## 📞 Soporte
 
