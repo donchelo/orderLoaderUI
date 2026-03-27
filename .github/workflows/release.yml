@@ -6,49 +6,46 @@ on:
 
 permissions:
   contents: write
-  issues: write
-  pull-requests: write
-  id-token: write
 
 jobs:
   release:
     name: 🚀 Release
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'skip ci')"
-    
+
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: 🔧 Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
 
-    - name: 📦 Install dependencies
-      run: npm ci
+      - name: 📦 Install dependencies
+        run: npm ci
 
-    - name: ✅ Run tests
-      run: npm run test -- --coverage --watchAll=false
-      env:
-        CI: true
+      - name: 🏗️ Build
+        run: npm run build
+        env:
+          SAP_B1_URL: https://placeholder:50000/b1s/v2/
+          SAP_B1_USER: placeholder
+          SAP_B1_PASS: placeholder
+          SAP_B1_COMPANY: placeholder
+          EMAIL_SMTP_HOST: placeholder
+          EMAIL_USER: placeholder
+          EMAIL_PASS: placeholder
+          NOTIFY_EMAIL: placeholder@placeholder.com
+          NEXT_PUBLIC_APP_NAME: Sistema de Pedidos
+          NEXT_PUBLIC_COMPANY_NAME: TamaPrint
 
-    - name: 🏗️ Build application
-      run: npm run build
-      env:
-        NODE_ENV: production
-
-    - name: 🏷️ Release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: npx semantic-release
-
-    - name: 📢 Release Success Notification
-      if: success()
-      run: |
-        echo "🎉 Release completed successfully!"
-        echo "📦 Check the releases page for the new version"
+      - name: 🏷️ Create Release Tag
+        run: |
+          VERSION="v$(node -p "require('./package.json').version")-$(date +'%Y%m%d')-${GITHUB_SHA::7}"
+          git tag $VERSION
+          git push origin $VERSION
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

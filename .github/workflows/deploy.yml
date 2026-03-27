@@ -1,88 +1,20 @@
-name: 🚀 Deploy to GitHub Pages
+name: 🚀 Deploy (Vercel)
+
+# Vercel auto-deploys on push to master via GitHub integration.
+# This workflow is kept as documentation only — no action needed here.
+# To configure: connect the repo in vercel.com/new and set env vars in
+# Vercel Dashboard > Project Settings > Environment Variables.
 
 on:
-  push:
-    branches: [ master ]
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
 jobs:
-  build:
-    name: 🏗️ Build
+  info:
+    name: ℹ️ Deploy Info
     runs-on: ubuntu-latest
-    
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-
-    - name: 🔧 Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-
-    - name: 📦 Install dependencies
-      run: npm ci
-
-    - name: ✅ Run tests
-      run: npm run test -- --coverage --watchAll=false
-      env:
-        CI: true
-
-    - name: 🏗️ Build application
-      run: npm run build
-      env:
-        NODE_ENV: production
-        GENERATE_SOURCEMAP: false
-
-    - name: 📁 Setup Pages
-      uses: actions/configure-pages@v4
-
-    - name: 📤 Upload artifact
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: ./build
-
-  deploy:
-    name: 🚀 Deploy
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    
-    steps:
-    - name: 🚀 Deploy to GitHub Pages
-      id: deployment
-      uses: actions/deploy-pages@v4
-
-    - name: 🎉 Deployment Success
-      run: |
-        echo "🎉 Deployment completed successfully!"
-        echo "🌐 Site URL: ${{ steps.deployment.outputs.page_url }}"
-
-  notify:
-    name: 📢 Notify Deployment
-    runs-on: ubuntu-latest
-    needs: [build, deploy]
-    if: always()
-    
-    steps:
-    - name: 📢 Deployment Status
-      run: |
-        if [[ "${{ needs.deploy.result }}" == "success" ]]; then
-          echo "✅ Deployment successful!"
-        else
-          echo "❌ Deployment failed!"
-          exit 1
-        fi
+      - name: ℹ️ Vercel handles deployment
+        run: |
+          echo "Deployment is handled automatically by Vercel."
+          echo "Push to master triggers a Vercel production deploy."
+          echo "See: https://vercel.com/donchelo/orderLoaderUI"

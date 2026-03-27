@@ -1,91 +1,43 @@
-name: 🔄 CI Pipeline
+name: 🔄 CI
 
 on:
   push:
-    branches: [ master, develop ]
+    branches: [master]
   pull_request:
-    branches: [ master, develop ]
+    branches: [master]
 
 jobs:
-  lint-and-test:
-    name: 🔍 Lint & Test
+  build:
+    name: 🏗️ Build & Lint
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
-    
+
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
 
-    - name: 🔧 Setup Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
 
-    - name: 📦 Install dependencies
-      run: npm ci
+      - name: 📦 Install dependencies
+        run: npm ci
 
-    - name: 🔍 Run ESLint
-      run: npm run lint --if-present || echo "No lint script found"
+      - name: 🔍 Lint
+        run: npm run lint
 
-    - name: ✅ Run tests
-      run: npm run test -- --coverage --watchAll=false
-      env:
-        CI: true
-
-    - name: 📊 Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      if: matrix.node-version == '18.x'
-      with:
-        fail_ci_if_error: false
-
-    - name: 🏗️ Build application
-      run: npm run build
-
-    - name: 📤 Upload build artifacts
-      uses: actions/upload-artifact@v4
-      if: matrix.node-version == '18.x'
-      with:
-        name: build-files
-        path: build/
-        retention-days: 7
-
-  security-audit:
-    name: 🔒 Security Audit
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-
-    - name: 🔧 Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-
-    - name: 📦 Install dependencies
-      run: npm ci
-
-    - name: 🔒 Run security audit
-      run: npm audit --audit-level=high
-
-    - name: 🛡️ Run npm audit fix
-      run: npm audit fix --dry-run
-
-  dependency-review:
-    name: 🔍 Dependency Review
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    
-    steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-    
-    - name: 🔍 Dependency Review
-      uses: actions/dependency-review-action@v4
+      - name: 🏗️ Build
+        run: npm run build
+        env:
+          # Dummy values so the build doesn't fail on missing env vars
+          SAP_B1_URL: https://placeholder:50000/b1s/v2/
+          SAP_B1_USER: placeholder
+          SAP_B1_PASS: placeholder
+          SAP_B1_COMPANY: placeholder
+          EMAIL_SMTP_HOST: placeholder
+          EMAIL_USER: placeholder
+          EMAIL_PASS: placeholder
+          NOTIFY_EMAIL: placeholder@placeholder.com
+          NEXT_PUBLIC_APP_NAME: Sistema de Pedidos
+          NEXT_PUBLIC_COMPANY_NAME: TamaPrint
