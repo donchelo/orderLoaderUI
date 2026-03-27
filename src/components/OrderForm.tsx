@@ -208,48 +208,95 @@ export function OrderForm({ company }: Props) {
         />
       )}
 
-      <div className="space-y-6">
-        {/* Search */}
-        <div className="bg-white rounded-xl shadow p-6">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Buscar artículos</h2>
-          <ArticleSearch
-            cardCode={company.cardCode}
-            priceListNum={company.priceListNum}
-            onSelectItem={addItem}
-          />
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Main Column: Articles & Table */}
+        <div className="lg:col-span-3 space-y-6">
+          {/* Search */}
+          <div className="bg-white rounded-xl shadow p-6">
+            <h2 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-lg">🔍</span>
+              Buscar artículos
+            </h2>
+            <ArticleSearch
+              cardCode={company.cardCode}
+              priceListNum={company.priceListNum}
+              onSelectItem={addItem}
+            />
+          </div>
+
+          {/* Order lines */}
+          <div className="bg-white rounded-xl shadow p-6 min-h-[400px]">
+            <h2 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-lg bg-green-50 text-green-600 flex items-center justify-center text-lg">📄</span>
+              Artículos del pedido
+              {lines.length > 0 && (
+                <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">
+                  {lines.length} {lines.length === 1 ? 'item' : 'ítems'}
+                </span>
+              )}
+            </h2>
+            <OrderTable
+              lines={lines}
+              currency={company.currency}
+              onUpdateQty={updateQty}
+              onUpdateDeliveryDate={updateDeliveryDate}
+              onSyncPrice={syncPrice}
+              onRemove={removeLine}
+              syncingIndex={syncingIndex}
+            />
+          </div>
         </div>
 
-        {/* Order lines */}
-        <div className="bg-white rounded-xl shadow p-6">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">
-            Artículos del pedido
-            {lines.length > 0 && (
-              <span className="ml-2 text-sm font-normal text-gray-400">({lines.length})</span>
-            )}
-          </h2>
-          <OrderTable
-            lines={lines}
-            currency={company.currency}
-            onUpdateQty={updateQty}
-            onUpdateDeliveryDate={updateDeliveryDate}
-            onSyncPrice={syncPrice}
-            onRemove={removeLine}
-            syncingIndex={syncingIndex}
-          />
-        </div>
+        {/* Sidebar: Totals & Submit */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-24 space-y-6">
+            <div className="bg-white rounded-xl shadow overflow-hidden">
+              <div className="bg-gray-900 px-6 py-4">
+                <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Resumen del pedido</h3>
+              </div>
+              
+              <div className="p-6 space-y-6">
+                {/* Visual Totals */}
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm text-gray-500">
+                    <span>Subtotal</span>
+                    <span>{fmt(lines.reduce((s, l) => s + l.total, 0), company.currency)}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+                    <span className="text-base font-bold text-gray-900">TOTAL</span>
+                    <span className="text-xl font-extrabold text-blue-600">
+                      {fmt(lines.reduce((s, l) => s + l.total, 0), company.currency)}
+                    </span>
+                  </div>
+                </div>
 
-        {/* Form fields + submit */}
-        <div className="bg-white rounded-xl shadow p-6">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Datos del pedido</h2>
-          <OrderFormFields formData={formData} onChange={setFormData} />
-          <div className="mt-6 flex justify-end">
-            <button
-              onClick={handleSubmitRequest}
-              disabled={lines.length === 0}
-              className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              Enviar pedido
-            </button>
+                <div className="border-t border-gray-100 pt-6">
+                  <OrderFormFields formData={formData} onChange={setFormData} />
+                </div>
+
+                <button
+                  onClick={handleSubmitRequest}
+                  disabled={lines.length === 0}
+                  className="w-full py-3.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-200 active:scale-[0.98] flex items-center justify-center gap-2"
+                >
+                  <span className="text-lg">🚀</span>
+                  Enviar pedido
+                </button>
+                
+                {lines.length === 0 && (
+                  <p className="text-center text-xs text-gray-400">
+                    Agrega artículos para habilitar el envío
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Hint */}
+            <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+              <p className="text-xs text-blue-700 leading-relaxed">
+                <span className="font-bold">Tip:</span> Los precios se sincronizan automáticamente con las escalas de SAP al cambiar la cantidad. ✨
+              </p>
+            </div>
           </div>
         </div>
       </div>

@@ -28,8 +28,8 @@ export default async function OrderPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
+      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             {companyName && (
               <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">{companyName}</p>
@@ -39,7 +39,7 @@ export default async function OrderPage({ params }: Props) {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Client info banner */}
         <div className="bg-blue-50 border border-blue-100 rounded-xl px-5 py-4 mb-6 flex items-center gap-4">
           <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center shrink-0">
