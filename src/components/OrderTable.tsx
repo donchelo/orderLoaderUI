@@ -66,6 +66,7 @@ export function OrderTable({ lines, currency, onUpdateQty, onUpdateDeliveryDate,
               <td className="px-3 py-2">
                 <input
                   type="date"
+                  min={new Date().toISOString().split('T')[0]}
                   value={line.deliveryDate}
                   onChange={(e) => onUpdateDeliveryDate(i, e.target.value)}
                   className="w-full border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
