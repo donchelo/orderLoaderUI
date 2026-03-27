@@ -2,21 +2,19 @@ import { sapFetch } from './client'
 import type { SAPItem } from '@/types/sap'
 
 export async function searchItems(query: string, top = 20): Promise<SAPItem[]> {
-  if (!query || query.trim().length < 2) return []
   const q = query.trim().replace(/'/g, "''") // escape single quotes for OData
+  
+  let filter = "Valid eq 'tYES' and SalesItem eq 'tYES'"
+  if (q.length > 0) {
+    filter += ` and (contains(ItemCode,'${q}') or contains(ItemName,'${q}') or contains(SupplierCatalogNo,'${q}'))`
+  }
 
-  // OData v4: contains() — supported on SAP B1 SL 10.x+
-  // For SAP B1 9.x (OData v2) replace with: substringof('${q}',ItemName) eq true
-  const filter = `(contains(ItemCode,'${q}') or contains(ItemName,'${q}')) and Active eq 'tYES' and SalesItem eq 'tYES'`
-
-  const params = new URLSearchParams({
-    $filter: filter,
-    $select: 'ItemCode,ItemName,SalesUoMCode',
-    $top: String(top),
-    $orderby: 'ItemName asc',
-  })
-
-  const res = await sapFetch(`/Items?${params.toString()}`)
+  const topParam = q.length === 0 ? 100 : top
+  const select = 'ItemCode,ItemName,SalesUnit,SupplierCatalogNo'
+  const orderby = 'ItemName asc'
+  
+  const queryString = `$filter=${encodeURIComponent(filter)}&$select=${encodeURIComponent(select)}&$top=${topParam}`
+  const res = await sapFetch(`/Items?${queryString}`)
   if (!res.ok) {
     throw new Error(`SAP items search failed [${res.status}]`)
   }

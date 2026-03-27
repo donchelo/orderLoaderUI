@@ -12,8 +12,9 @@ export interface SAPBusinessPartner {
 export interface SAPItem {
   ItemCode: string
   ItemName: string
-  SalesUoMCode: string
-  Active: 'tYES' | 'tNO'
+  SalesUnit: string
+  Valid: 'tYES' | 'tNO'
+  SupplierCatalogNo: string
 }
 
 export interface SAPItemPrice {

@@ -3,9 +3,6 @@ import { searchItems } from '@/lib/sap/articles'
 
 export async function GET(req: NextRequest) {
   const query = req.nextUrl.searchParams.get('q') ?? ''
-  if (query.length < 2) {
-    return NextResponse.json({ items: [] })
-  }
   try {
     const items = await searchItems(query)
     return NextResponse.json({ items })
