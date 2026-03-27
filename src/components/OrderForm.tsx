@@ -23,10 +23,11 @@ function fmt(n: number, currency: string) {
 
 export function OrderForm({ company }: Props) {
   const [lines, setLines] = useState<OrderLineItem[]>([])
-  const [formData, setFormData] = useState<OrderFormData>({ deliveryDate: '', comments: '' })
+  const [formData, setFormData] = useState<OrderFormData>({ signedBy: '', comments: '' })
   const [status, setStatus] = useState<Status>('idle')
   const [result, setResult] = useState<SubmitOrderResult | null>(null)
   const [errorMsg, setErrorMsg] = useState('')
+  const [syncingIndex, setSyncingIndex] = useState<number | null>(null)
 
   const addItem = (item: OrderLineItem) => {
     setLines((prev) => {
@@ -38,8 +39,15 @@ export function OrderForm({ company }: Props) {
             : l
         )
       }
-      return [...prev, item]
+      const today = new Date().toISOString().split('T')[0]
+      return [...prev, { ...item, deliveryDate: today }]
     })
+  }
+
+  const updateDeliveryDate = (index: number, date: string) => {
+    setLines((prev) =>
+      prev.map((l, i) => (i === index ? { ...l, deliveryDate: date } : l))
+    )
   }
 
   const updateQty = (index: number, qty: number) => {
@@ -48,13 +56,49 @@ export function OrderForm({ company }: Props) {
     )
   }
 
+  const syncPrice = async (index: number) => {
+    const line = lines[index]
+    if (!line) return
+
+    setSyncingIndex(index)
+    console.log(`Sincronizando precio para ${line.itemCode} con cantidad ${line.quantity}...`)
+
+    try {
+      const url = `/api/sap/price?itemCode=${line.itemCode}&cardCode=${company.cardCode}&priceList=${company.priceListNum}&quantity=${line.quantity}`
+      const res = await fetch(url)
+      const data = await res.json()
+      
+      console.log('Respuesta de SAP:', data)
+
+      if (res.ok && data.price > 0) {
+        if (data.price === line.unitPrice) {
+          console.log('El precio es el mismo, no se requiere actualización.')
+        }
+        setLines((prev) =>
+          prev.map((l, i) =>
+            i === index
+              ? { ...l, unitPrice: data.price, total: data.price * l.quantity }
+              : l
+          )
+        )
+      } else {
+        console.warn('No se encontró un precio especial o escala para esta cantidad.')
+      }
+    } catch (error) {
+      console.error('Error syncing price:', error)
+      alert('Error al sincronizar el precio. Revisa la consola.')
+    } finally {
+      setSyncingIndex(null)
+    }
+  }
+
   const removeLine = (index: number) => {
     setLines((prev) => prev.filter((_, i) => i !== index))
   }
 
   const handleSubmitRequest = () => {
-    if (!formData.deliveryDate) {
-      alert('Selecciona la fecha de entrega antes de continuar.')
+    if (!formData.signedBy) {
+      alert('Por favor ingrese el nombre de quien recibe (Firma).')
       return
     }
     if (lines.length === 0) {
@@ -86,7 +130,7 @@ export function OrderForm({ company }: Props) {
 
   const handleReset = () => {
     setLines([])
-    setFormData({ deliveryDate: '', comments: '' })
+    setFormData({ signedBy: '', comments: '' })
     setStatus('idle')
     setResult(null)
     setErrorMsg('')
@@ -187,7 +231,10 @@ export function OrderForm({ company }: Props) {
             lines={lines}
             currency={company.currency}
             onUpdateQty={updateQty}
+            onUpdateDeliveryDate={updateDeliveryDate}
+            onSyncPrice={syncPrice}
             onRemove={removeLine}
+            syncingIndex={syncingIndex}
           />
         </div>
 

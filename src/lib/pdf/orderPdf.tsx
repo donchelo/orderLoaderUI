@@ -41,11 +41,12 @@ const styles = StyleSheet.create({
     borderBottomColor: '#eeeeee',
   },
   tableRowAlt: { backgroundColor: '#fafafa' },
-  colCode: { width: '15%' },
-  colDesc: { width: '45%' },
+  colCode: { width: '12%' },
+  colDesc: { width: '38%' },
   colQty: { width: '10%', textAlign: 'right' },
-  colPrice: { width: '15%', textAlign: 'right' },
-  colTotal: { width: '15%', textAlign: 'right' },
+  colDeliv: { width: '12%', textAlign: 'center' },
+  colPrice: { width: '14%', textAlign: 'right' },
+  colTotal: { width: '14%', textAlign: 'right' },
   totalsSection: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 16 },
   totalLabel: { fontFamily: 'Helvetica-Bold', marginRight: 16, fontSize: 12 },
   totalValue: { fontFamily: 'Helvetica-Bold', fontSize: 12, minWidth: 90, textAlign: 'right' },
@@ -71,8 +72,8 @@ function OrderDocument({ orderNum, company, lines, formData, docTotal }: PdfData
           <View>
             <Text style={[styles.labelSmall, styles.textRight]}>Fecha</Text>
             <Text style={styles.textRight}>{today}</Text>
-            <Text style={[styles.labelSmall, styles.textRight, { marginTop: 8 }]}>Fecha de entrega</Text>
-            <Text style={styles.textRight}>{formData.deliveryDate}</Text>
+            <Text style={[styles.labelSmall, styles.textRight, { marginTop: 8 }]}>Solicitado por</Text>
+            <Text style={styles.textRight}>{formData.signedBy}</Text>
           </View>
         </View>
 
@@ -88,6 +89,7 @@ function OrderDocument({ orderNum, company, lines, formData, docTotal }: PdfData
           <Text style={{ ...styles.colCode, color: 'white' }}>Código</Text>
           <Text style={{ ...styles.colDesc, color: 'white' }}>Descripción</Text>
           <Text style={{ ...styles.colQty, color: 'white' }}>Cant.</Text>
+          <Text style={{ ...styles.colDeliv, color: 'white' }}>Entrega</Text>
           <Text style={{ ...styles.colPrice, color: 'white' }}>P. Unit.</Text>
           <Text style={{ ...styles.colTotal, color: 'white' }}>Total</Text>
         </View>
@@ -98,6 +100,7 @@ function OrderDocument({ orderNum, company, lines, formData, docTotal }: PdfData
             <Text style={styles.colCode}>{line.itemCode}</Text>
             <Text style={styles.colDesc}>{line.itemName}</Text>
             <Text style={styles.colQty}>{line.quantity} {line.uom}</Text>
+            <Text style={styles.colDeliv}>{line.deliveryDate}</Text>
             <Text style={styles.colPrice}>{fmt(line.unitPrice, company.currency)}</Text>
             <Text style={styles.colTotal}>{fmt(line.total, company.currency)}</Text>
           </View>

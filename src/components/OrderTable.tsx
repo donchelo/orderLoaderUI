@@ -6,7 +6,10 @@ interface Props {
   lines: OrderLineItem[]
   currency: string
   onUpdateQty: (index: number, qty: number) => void
+  onUpdateDeliveryDate: (index: number, date: string) => void
+  onSyncPrice: (index: number) => void
   onRemove: (index: number) => void
+  syncingIndex: number | null
 }
 
 function fmt(n: number, currency: string) {
@@ -17,7 +20,7 @@ function fmt(n: number, currency: string) {
   }).format(n)
 }
 
-export function OrderTable({ lines, currency, onUpdateQty, onRemove }: Props) {
+export function OrderTable({ lines, currency, onUpdateQty, onUpdateDeliveryDate, onSyncPrice, onRemove, syncingIndex }: Props) {
   if (lines.length === 0) {
     return (
       <div className="text-center py-12 text-gray-400 text-sm border border-dashed border-gray-200 rounded-lg">
@@ -36,6 +39,7 @@ export function OrderTable({ lines, currency, onUpdateQty, onRemove }: Props) {
             <th className="px-3 py-2 rounded-tl-md">Código</th>
             <th className="px-3 py-2">Artículo</th>
             <th className="px-3 py-2 text-right">Cant.</th>
+            <th className="px-3 py-2 text-center w-32">Entrega</th>
             <th className="px-3 py-2 text-right">P. Unit.</th>
             <th className="px-3 py-2 text-right">Total</th>
             <th className="px-3 py-2 rounded-tr-md w-10" />
@@ -55,10 +59,36 @@ export function OrderTable({ lines, currency, onUpdateQty, onRemove }: Props) {
                     const v = parseInt(e.target.value, 10)
                     if (v > 0) onUpdateQty(i, v)
                   }}
+                  onBlur={() => onSyncPrice(i)}
                   className="w-16 border border-gray-300 rounded px-2 py-1 text-right text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </td>
-              <td className="px-3 py-2 text-right text-gray-700">{fmt(line.unitPrice, currency)}</td>
+              <td className="px-3 py-2">
+                <input
+                  type="date"
+                  value={line.deliveryDate}
+                  onChange={(e) => onUpdateDeliveryDate(i, e.target.value)}
+                  className="w-full border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </td>
+              <td className="px-3 py-2 text-right">
+                <div className="flex items-center justify-end gap-2">
+                  <span className="text-gray-700">{fmt(line.unitPrice, currency)}</span>
+                  <button
+                    type="button"
+                    onClick={() => onSyncPrice(i)}
+                    disabled={syncingIndex === i}
+                    title="Actualizar precio según escala"
+                    className="p-1 text-blue-500 hover:bg-blue-50 rounded-full transition-all hover:scale-110 active:scale-95 disabled:opacity-30"
+                  >
+                    {syncingIndex === i ? (
+                      <span className="animate-spin inline-block w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full" />
+                    ) : (
+                      '✨'
+                    )}
+                  </button>
+                </div>
+              </td>
               <td className="px-3 py-2 text-right font-medium">{fmt(line.total, currency)}</td>
               <td className="px-3 py-2 text-center">
                 <button
@@ -74,7 +104,7 @@ export function OrderTable({ lines, currency, onUpdateQty, onRemove }: Props) {
         </tbody>
         <tfoot>
           <tr className="border-t-2 border-gray-900">
-            <td colSpan={4} className="px-3 py-3 text-right font-bold text-gray-900">
+            <td colSpan={5} className="px-3 py-3 text-right font-bold text-gray-900">
               TOTAL
             </td>
             <td className="px-3 py-3 text-right font-bold text-gray-900 text-base">

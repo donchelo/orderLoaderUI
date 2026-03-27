@@ -32,6 +32,7 @@ function buildTableHtml(lines: OrderLineItem[], total: number, currency: string)
         <td style="padding:6px 10px;border-bottom:1px solid #eee;font-size:13px">${l.itemCode}</td>
         <td style="padding:6px 10px;border-bottom:1px solid #eee;font-size:13px">${l.itemName}</td>
         <td style="padding:6px 10px;border-bottom:1px solid #eee;font-size:13px;text-align:right">${l.quantity} ${l.uom}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #eee;font-size:13px;text-align:center">${l.deliveryDate}</td>
         <td style="padding:6px 10px;border-bottom:1px solid #eee;font-size:13px;text-align:right">${fmt(l.unitPrice)}</td>
         <td style="padding:6px 10px;border-bottom:1px solid #eee;font-size:13px;text-align:right">${fmt(l.total)}</td>
       </tr>`
@@ -45,6 +46,7 @@ function buildTableHtml(lines: OrderLineItem[], total: number, currency: string)
           <th style="padding:8px 10px;text-align:left;font-size:12px">Código</th>
           <th style="padding:8px 10px;text-align:left;font-size:12px">Artículo</th>
           <th style="padding:8px 10px;text-align:right;font-size:12px">Cant.</th>
+          <th style="padding:8px 10px;text-align:center;font-size:12px">Entrega</th>
           <th style="padding:8px 10px;text-align:right;font-size:12px">P. Unit.</th>
           <th style="padding:8px 10px;text-align:right;font-size:12px">Total</th>
         </tr>
@@ -52,7 +54,7 @@ function buildTableHtml(lines: OrderLineItem[], total: number, currency: string)
       <tbody>${rows}</tbody>
       <tfoot>
         <tr>
-          <td colspan="4" style="padding:8px 10px;font-weight:bold;text-align:right;font-size:13px">TOTAL</td>
+          <td colspan="5" style="padding:8px 10px;font-weight:bold;text-align:right;font-size:13px">TOTAL</td>
           <td style="padding:8px 10px;font-weight:bold;text-align:right;font-size:13px">${fmt(total)}</td>
         </tr>
       </tfoot>

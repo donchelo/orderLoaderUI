@@ -38,6 +38,7 @@ export interface SAPOrderLine {
   ItemDescription: string
   Quantity: number
   UnitPrice: number
+  ShipDate: string
   WarehouseCode: string
 }
 
@@ -72,11 +73,12 @@ export interface OrderLineItem {
   quantity: number
   unitPrice: number
   uom: string
+  deliveryDate: string
   total: number
 }
 
 export interface OrderFormData {
-  deliveryDate: string
+  signedBy: string
   comments: string
 }
 

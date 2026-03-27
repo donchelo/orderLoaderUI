@@ -14,13 +14,13 @@ export function OrderFormFields({ formData, onChange }: Props) {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Fecha de entrega <span className="text-red-500">*</span>
+          Firma / Nombre de quien recibe <span className="text-red-500">*</span>
         </label>
         <input
-          type="date"
-          min={today}
-          value={formData.deliveryDate}
-          onChange={(e) => onChange({ ...formData, deliveryDate: e.target.value })}
+          type="text"
+          placeholder="Nombre completo"
+          value={formData.signedBy}
+          onChange={(e) => onChange({ ...formData, signedBy: e.target.value })}
           required
           className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />

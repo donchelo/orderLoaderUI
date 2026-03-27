@@ -9,26 +9,31 @@ export async function POST(req: NextRequest) {
     const body = (await req.json()) as SubmitOrderPayload
     const { company, lines, formData } = body
 
-    if (!company?.cardCode || !lines?.length || !formData?.deliveryDate) {
+    if (!company?.cardCode || !lines?.length || !formData?.signedBy) {
       return NextResponse.json(
-        { error: 'Datos del pedido incompletos' },
+        { error: 'Datos del pedido incompletos (Falta firma o artículos)' },
         { status: 400 }
       )
     }
 
     const warehouseCode = process.env.SAP_WAREHOUSE_CODE ?? '01'
 
+    // Header date should be the earliest delivery date of the lines
+    const sortedDates = [...lines].map(l => l.deliveryDate).sort()
+    const headerDueDate = sortedDates[0] || new Date().toISOString().split('T')[0]
+
     // 1. Build SAP order document
     const sapOrder: SAPOrder = {
       CardCode: company.cardCode,
       DocDate: new Date().toISOString().split('T')[0],
-      DocDueDate: formData.deliveryDate,
-      Comments: formData.comments,
+      DocDueDate: headerDueDate,
+      Comments: `Firma: ${formData.signedBy}\n${formData.comments || ''}`,
       DocumentLines: lines.map((line) => ({
         ItemCode: line.itemCode,
         ItemDescription: line.itemName,
         Quantity: line.quantity,
         UnitPrice: line.unitPrice,
+        ShipDate: line.deliveryDate,
         WarehouseCode: warehouseCode,
       })),
     }

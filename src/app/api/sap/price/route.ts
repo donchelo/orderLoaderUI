@@ -5,6 +5,7 @@ export async function GET(req: NextRequest) {
   const itemCode  = req.nextUrl.searchParams.get('itemCode') ?? ''
   const cardCode  = req.nextUrl.searchParams.get('cardCode') ?? ''
   const priceList = parseInt(req.nextUrl.searchParams.get('priceList') ?? '1', 10)
+  const quantity  = parseFloat(req.nextUrl.searchParams.get('quantity') ?? '1')
 
   if (!itemCode || !cardCode) {
     return NextResponse.json(
@@ -13,7 +14,7 @@ export async function GET(req: NextRequest) {
     )
   }
   try {
-    const result = await getItemPrice(itemCode, cardCode, priceList)
+    const result = await getItemPrice(itemCode, cardCode, priceList, quantity)
     return NextResponse.json(result)
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'Error al consultar precio'
