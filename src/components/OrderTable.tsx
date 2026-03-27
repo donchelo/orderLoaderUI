@@ -74,7 +74,14 @@ export function OrderTable({ lines, currency, onUpdateQty, onUpdateDeliveryDate,
               </td>
               <td className="px-3 py-2 text-right">
                 <div className="flex items-center justify-end gap-2">
-                  <span className="text-gray-700">{fmt(line.unitPrice, currency)}</span>
+                  <div className="text-right">
+                    <span className="text-gray-700 block">{fmt(line.unitPrice, currency)}</span>
+                    {syncingIndex === i && (
+                      <span className="text-[10px] text-blue-500 animate-pulse font-bold block">
+                        Actualizando precio...
+                      </span>
+                    )}
+                  </div>
                   <button
                     type="button"
                     onClick={() => onSyncPrice(i)}

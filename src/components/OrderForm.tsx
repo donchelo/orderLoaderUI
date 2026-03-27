@@ -28,6 +28,7 @@ export function OrderForm({ company }: Props) {
   const [result, setResult] = useState<SubmitOrderResult | null>(null)
   const [errorMsg, setErrorMsg] = useState('')
   const [syncingIndex, setSyncingIndex] = useState<number | null>(null)
+  const [loadingStep, setLoadingStep] = useState<string>('')
 
   const addItem = (item: OrderLineItem) => {
     setLines((prev) => {
@@ -110,21 +111,33 @@ export function OrderForm({ company }: Props) {
 
   const handleConfirm = async () => {
     setStatus('submitting')
+    setLoadingStep('1. Validando datos del pedido...')
+    
     try {
+      setLoadingStep('2. Conectando con SAP Service Layer...')
       const res = await fetch('/api/sap/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ company, lines, formData }),
       })
+      
       const data = await res.json() as SubmitOrderResult & { error?: string }
+      
       if (!res.ok || data.error) {
         throw new Error(data.error ?? 'Error al enviar el pedido')
       }
+
+      setLoadingStep('3. Generando documentos y enviando correo...')
+      // Wait a bit to show the step
+      await new Promise(r => setTimeout(r, 1000))
+      
       setResult(data)
       setStatus('success')
     } catch (e) {
       setErrorMsg(e instanceof Error ? e.message : 'Error desconocido')
       setStatus('error')
+    } finally {
+      setLoadingStep('')
     }
   }
 
@@ -203,6 +216,7 @@ export function OrderForm({ company }: Props) {
           lines={lines}
           formData={formData}
           loading={true}
+          loadingStep={loadingStep}
           onConfirm={handleConfirm}
           onCancel={() => {}}
         />
@@ -263,7 +277,14 @@ export function OrderForm({ company }: Props) {
                     <span>{fmt(lines.reduce((s, l) => s + l.total, 0), company.currency)}</span>
                   </div>
                   <div className="flex justify-between items-center pt-3 border-t border-gray-100">
-                    <span className="text-base font-bold text-gray-900">TOTAL</span>
+                    <span className="text-base font-bold text-gray-900">
+                      TOTAL
+                      {syncingIndex !== null && (
+                        <span className="ml-2 text-[10px] text-blue-500 animate-pulse font-bold block bg-blue-50 px-2 py-0.5 rounded">
+                          ✨ Actualizando precio...
+                        </span>
+                      )}
+                    </span>
                     <span className="text-xl font-extrabold text-blue-600">
                       {fmt(lines.reduce((s, l) => s + l.total, 0), company.currency)}
                     </span>

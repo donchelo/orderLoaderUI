@@ -13,6 +13,7 @@ export function ArticleSearch({ cardCode, priceListNum, onSelectItem }: Props) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SAPItem[]>([])
   const [loading, setLoading] = useState(false)
+  const [isSelecting, setIsSelecting] = useState(false)
   const [open, setOpen] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [addedItemCode, setAddedItemCode] = useState<string | null>(null)
@@ -59,6 +60,7 @@ export function ArticleSearch({ cardCode, priceListNum, onSelectItem }: Props) {
     setOpen(false)
     setQuery('')
     setResults([])
+    setIsSelecting(true)
 
     // Visual feedback
     setAddedItemCode(item.ItemCode)
@@ -74,6 +76,8 @@ export function ArticleSearch({ cardCode, priceListNum, onSelectItem }: Props) {
       unitPrice = data.price
     } catch {
       unitPrice = 0
+    } finally {
+      setIsSelecting(false)
     }
 
     onSelectItem({
@@ -81,7 +85,8 @@ export function ArticleSearch({ cardCode, priceListNum, onSelectItem }: Props) {
       itemName: item.ItemName,
       quantity: 1,
       unitPrice,
-      uom: item.SalesUoMCode,
+      uom: item.SalesUnit,
+      deliveryDate: new Date().toISOString().split('T')[0],
       total: unitPrice,
     })
   }
@@ -159,7 +164,10 @@ export function ArticleSearch({ cardCode, priceListNum, onSelectItem }: Props) {
             ¡Artículo añadido!
           </span>
         )}
-        {loading && (
+        {isSelecting && (
+          <span className="text-xs text-blue-500 animate-pulse font-bold">Agregando artículo...</span>
+        )}
+        {loading && !isSelecting && (
           <span className="text-xs text-blue-500 animate-pulse font-medium">Sincronizando con SAP...</span>
         )}
       </div>
@@ -167,6 +175,7 @@ export function ArticleSearch({ cardCode, priceListNum, onSelectItem }: Props) {
         <input
           type="text"
           value={query}
+          disabled={isSelecting}
           onChange={(e) => handleChange(e.target.value)}
           onKeyDown={handleKeyDown}
           onBlur={() => setTimeout(() => setOpen(false), 200)}
@@ -174,8 +183,10 @@ export function ArticleSearch({ cardCode, priceListNum, onSelectItem }: Props) {
             if (results.length === 0) fetchArticles(query)
             else setOpen(true)
           }}
-          placeholder="Busque por código, nombre o catálogo..."
-          className="w-full border border-gray-300 rounded-lg pl-3 pr-10 py-2.5 text-sm transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent group-hover:border-gray-400"
+          placeholder={isSelecting ? "Agregando artículo..." : "Busque por código, nombre o catálogo..."}
+          className={`w-full border border-gray-300 rounded-lg pl-3 pr-10 py-2.5 text-sm transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent group-hover:border-gray-400 ${
+            isSelecting ? 'bg-gray-50' : ''
+          }`}
         />
         <button
           type="button"
@@ -242,7 +253,7 @@ export function ArticleSearch({ cardCode, priceListNum, onSelectItem }: Props) {
                       ? 'border-blue-400 text-blue-100 shadow-sm' 
                       : 'border-gray-100 text-gray-400 bg-gray-50'
                   }`}>
-                    {item.SalesUoMCode}
+                    {item.SalesUnit}
                   </span>
                 </div>
               </li>
