@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "@tama/design-tokens/globals.css";
+@import "@tamaprint/design-tokens/globals.css";
 
 :root {
   --background: #ffffff;
