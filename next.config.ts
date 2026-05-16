@@ -1,9 +1,7 @@
-import type { NextConfig } from 'next'
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Keep nodemailer and @react-pdf/renderer in Node.js runtime (not bundled by webpack)
-  // Required for server-side PDF generation and SMTP email on Vercel
-  serverExternalPackages: ['nodemailer', '@react-pdf/renderer'],
-}
+  transpilePackages: ['@tamaprint/email','@tamaprint/design-tokens'],
+};
 
-export default nextConfig
+export default nextConfig;
