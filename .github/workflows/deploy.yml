@@ -1,0 +1,20 @@
+name: 🚀 Deploy (Vercel)
+
+# Vercel auto-deploys on push to master via GitHub integration.
+# This workflow is kept as documentation only — no action needed here.
+# To configure: connect the repo in vercel.com/new and set env vars in
+# Vercel Dashboard > Project Settings > Environment Variables.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  info:
+    name: ℹ️ Deploy Info
+    runs-on: ubuntu-latest
+    steps:
+      - name: ℹ️ Vercel handles deployment
+        run: |
+          echo "Deployment is handled automatically by Vercel."
+          echo "Push to master triggers a Vercel production deploy."
+          echo "See: https://vercel.com/donchelo/orderLoaderUI"

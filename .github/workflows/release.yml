@@ -1,0 +1,54 @@
+name: 🏷️ Release
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: 🚀 Release
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🏗️ Build
+        run: npm run build
+        env:
+          SAP_B1_URL: https://placeholder:50000/b1s/v2/
+          SAP_B1_USER: placeholder
+          SAP_B1_PASS: placeholder
+          SAP_B1_COMPANY: placeholder
+          EMAIL_SMTP_HOST: placeholder
+          EMAIL_USER: placeholder
+          EMAIL_PASS: placeholder
+          NOTIFY_EMAIL: placeholder@placeholder.com
+          NEXT_PUBLIC_APP_NAME: Sistema de Pedidos
+          NEXT_PUBLIC_COMPANY_NAME: TamaPrint
+
+      - name: 🏷️ Create Release Tag
+        run: |
+          VERSION="v$(node -p "require('./package.json').version")-$(date +'%Y%m%d')-${GITHUB_SHA::7}"
+          git tag $VERSION
+          git push origin $VERSION
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
