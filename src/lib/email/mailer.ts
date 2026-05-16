@@ -1,4 +1,4 @@
-import { createTransporter, getFrom } from '@tama/email'
+import { createTransporter, getFrom } from '@tamaprint/email'
 import type { CompanyInfo, OrderLineItem } from '@/types/sap'
 
 export interface EmailOrderPayload {
