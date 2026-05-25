@@ -1,0 +1,12 @@
+{
+  "name": "@tamaprint/design-tokens",
+  "version": "0.1.0",
+  "exports": {
+    "./globals.css": "./globals.css",
+    "./tokens": "./src/tokens.ts"
+  },
+  "files": ["globals.css", "src"],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}
