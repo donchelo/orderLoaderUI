@@ -13,7 +13,7 @@ export async function searchItems(query: string, top = 20): Promise<SAPItem[]> {
   const select = 'ItemCode,ItemName,SalesUnit,SupplierCatalogNo'
   const orderby = 'ItemName asc'
   
-  const queryString = `$filter=${encodeURIComponent(filter)}&$select=${encodeURIComponent(select)}&$top=${topParam}`
+  const queryString = `$filter=${encodeURIComponent(filter)}&$select=${encodeURIComponent(select)}&$orderby=${encodeURIComponent(orderby)}&$top=${topParam}`
   const res = await sapFetch(`/Items?${queryString}`)
   if (!res.ok) {
     throw new Error(`SAP items search failed [${res.status}]`)

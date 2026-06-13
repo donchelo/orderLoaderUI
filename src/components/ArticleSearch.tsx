@@ -129,6 +129,7 @@ export function ArticleSearch({ cardCode, priceListNum, onSelectItem }: Props) {
   // Prevent hydration mismatch
   const [isMounted, setIsMounted] = useState(false)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true)
   }, [])
 

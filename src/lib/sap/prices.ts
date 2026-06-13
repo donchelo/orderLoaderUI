@@ -1,5 +1,22 @@
 import { sapFetch } from './client'
-import type { SAPSpecialPrice, SAPItemPrice, PriceResult } from '@/types/sap'
+import type { SAPItemPrice, PriceResult } from '@/types/sap'
+
+interface SAPSpecialPriceQuantityArea {
+  Quantity: number
+  SpecialPrice: number
+}
+
+interface SAPSpecialPriceDataArea {
+  DateFrom?: string
+  Dateto?: string
+  SpecialPriceQuantityAreas?: SAPSpecialPriceQuantityArea[]
+}
+
+interface SAPSpecialPriceRaw {
+  Price: number
+  Currency: string
+  SpecialPriceDataAreas?: SAPSpecialPriceDataArea[]
+}
 
 export async function getItemPrice(
   itemCode: string,
@@ -14,7 +31,7 @@ export async function getItemPrice(
       `/SpecialPrices?$filter=${encodeURIComponent(spFilter)}&$top=1`
     )
     if (spRes.ok) {
-      const spData = (await spRes.json()) as { value: any[] }
+      const spData = (await spRes.json()) as { value: SAPSpecialPriceRaw[] }
       if (spData.value.length > 0) {
         const sp = spData.value[0]
         let finalPrice = sp.Price
@@ -24,7 +41,7 @@ export async function getItemPrice(
         if (quantity !== undefined && sp.SpecialPriceDataAreas) {
           const now = new Date()
           // Find valid data areas by date
-          const validAreas = sp.SpecialPriceDataAreas.filter((area: any) => {
+          const validAreas = sp.SpecialPriceDataAreas.filter((area: SAPSpecialPriceDataArea) => {
             const from = area.DateFrom ? new Date(area.DateFrom) : null
             const to = area.Dateto ? new Date(area.Dateto) : null
             return (!from || now >= from) && (!to || now <= to)
