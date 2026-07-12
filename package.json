@@ -10,6 +10,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@ai4u/design-system": "github:donchelo/sistemaDiseno#v1.1.0",
     "@tamaprint/email": "file:./local_packages/email",
     "@react-pdf/renderer": "^4.3.2",
     "next": "16.2.1",

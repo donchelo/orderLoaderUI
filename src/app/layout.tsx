@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Red_Hat_Display, JetBrains_Mono } from "next/font/google";
+import { ChangelogPill } from "@/components/ChangelogPill";
 import "./globals.css";
 
 const redHat = Red_Hat_Display({
@@ -29,7 +30,10 @@ export default function RootLayout({
       lang="es"
       className={`${redHat.variable} ${jetBrains.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <ChangelogPill />
+      </body>
     </html>
   );
 }
